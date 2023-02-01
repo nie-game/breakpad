@@ -56,8 +56,8 @@ namespace google_breakpad {
 
 namespace {
 
-using std::vector;
 using std::unique_ptr;
+using std::vector;
 
 // Separator character for machine readable output.
 static const char kOutputSeparator = '|';
@@ -86,7 +86,7 @@ static int PrintRegister(const char* name, uint32_t value, int start_col) {
 // PrintRegister64 does the same thing, but for 64-bit registers.
 static int PrintRegister64(const char* name, uint64_t value, int start_col) {
   char buffer[64];
-  snprintf(buffer, sizeof(buffer), " %5s = 0x%016" PRIx64 , name, value);
+  snprintf(buffer, sizeof(buffer), " %5s = 0x%016" PRIx64, name, value);
 
   if (start_col + static_cast<ssize_t>(strlen(buffer)) > kMaxWidth) {
     start_col = 0;
@@ -171,9 +171,12 @@ static void PrintStackContents(const string& indent,
   if (!word_length || !stack_begin || !stack_end)
     return;
 
+  unsigned long long cnt = 0;
+
   // Print stack contents.
   printf("\n%sStack contents:", indent.c_str());
-  for(uint64_t address = stack_begin; address < stack_end; ) {
+  for (uint64_t address = stack_begin; (address < stack_end) && (cnt < 8192);
+       cnt++) {
     // Print the start address of this row.
     if (word_length == 4)
       printf("\n%s %08x", indent.c_str(), static_cast<uint32_t>(address));
@@ -185,8 +188,7 @@ static void PrintStackContents(const string& indent,
     string data_as_string;
     for (int i = 0; i < kBytesPerRow; ++i, ++address) {
       uint8_t value = 0;
-      if (address < stack_end &&
-          memory->GetMemoryAtAddress(address, &value)) {
+      if (address < stack_end && memory->GetMemoryAtAddress(address, &value)) {
         printf(" %02x", value);
         data_as_string.push_back(isprint(value) ? value : '.');
       } else {
@@ -195,13 +197,15 @@ static void PrintStackContents(const string& indent,
       }
     }
     // Print data as string.
-    printf("  %s", data_as_string.c_str());
+    printf("  %s (%llu)", data_as_string.c_str(), cnt);
   }
+
+  cnt = 0;
 
   // Try to find instruction pointers from stack.
   printf("\n%sPossible instruction pointers:\n", indent.c_str());
-  for (uint64_t address = stack_begin; address < stack_end;
-       address += word_length) {
+  for (uint64_t address = stack_begin; (address < stack_end) && (cnt < 8192);
+       address += word_length, cnt++) {
     StackFrame pointee_frame;
 
     // Read a word (possible instruction pointer) from stack.
@@ -240,7 +244,7 @@ static void PrintStackContents(const string& indent,
       }
     };
     print_function_name(&pointee_frame);
-    for (unique_ptr<StackFrame> &frame : inlined_frames)
+    for (unique_ptr<StackFrame>& frame : inlined_frames)
       print_function_name(frame.get());
   }
   printf("\n");
@@ -277,8 +281,7 @@ static void PrintStack(const CallStack* stack,
         printf("!%s", frame->function_name.c_str());
         if (!frame->source_file_name.empty()) {
           string source_file = PathnameStripper::File(frame->source_file_name);
-          printf(" [%s : %d + 0x%" PRIx64 "]",
-                 source_file.c_str(),
+          printf(" [%s : %d + 0x%" PRIx64 "]", source_file.c_str(),
                  frame->source_line,
                  instruction_address - frame->source_line_base);
         } else {
@@ -668,25 +671,22 @@ static void PrintStackMachineReadable(int thread_num, const CallStack* stack) {
 
     if (frame->module) {
       assert(!frame->module->code_file().empty());
-      printf("%s", StripSeparator(PathnameStripper::File(
-                     frame->module->code_file())).c_str());
+      printf("%s",
+             StripSeparator(PathnameStripper::File(frame->module->code_file()))
+                 .c_str());
       if (!frame->function_name.empty()) {
         printf("%c%s", kOutputSeparator,
                StripSeparator(frame->function_name).c_str());
         if (!frame->source_file_name.empty()) {
-          printf("%c%s%c%d%c0x%" PRIx64,
-                 kOutputSeparator,
+          printf("%c%s%c%d%c0x%" PRIx64, kOutputSeparator,
                  StripSeparator(frame->source_file_name).c_str(),
-                 kOutputSeparator,
-                 frame->source_line,
-                 kOutputSeparator,
+                 kOutputSeparator, frame->source_line, kOutputSeparator,
                  instruction_address - frame->source_line_base);
         } else {
           printf("%c%c%c0x%" PRIx64,
                  kOutputSeparator,  // empty source file
                  kOutputSeparator,  // empty source line
-                 kOutputSeparator,
-                 instruction_address - frame->function_base);
+                 kOutputSeparator, instruction_address - frame->function_base);
         }
       } else {
         printf("%c%c%c%c0x%" PRIx64,
@@ -702,8 +702,7 @@ static void PrintStackMachineReadable(int thread_num, const CallStack* stack) {
              kOutputSeparator,  // empty function name
              kOutputSeparator,  // empty source file
              kOutputSeparator,  // empty source line
-             kOutputSeparator,
-             instruction_address);
+             kOutputSeparator, instruction_address);
     }
     printf("\n");
   }
@@ -711,9 +710,8 @@ static void PrintStackMachineReadable(int thread_num, const CallStack* stack) {
 
 // ContainsModule checks whether a given |module| is in the vector
 // |modules_without_symbols|.
-static bool ContainsModule(
-    const vector<const CodeModule*>* modules,
-    const CodeModule* module) {
+static bool ContainsModule(const vector<const CodeModule*>* modules,
+                           const CodeModule* module) {
   assert(modules);
   assert(module);
   vector<const CodeModule*>::const_iterator iter;
@@ -737,16 +735,16 @@ static void PrintModule(
   string symbol_issues;
   if (ContainsModule(modules_without_symbols, module)) {
     symbol_issues = "  (WARNING: No symbols, " +
-        PathnameStripper::File(module->debug_file()) + ", " +
-        module->debug_identifier() + ")";
+                    PathnameStripper::File(module->debug_file()) + ", " +
+                    module->debug_identifier() + ")";
   } else if (ContainsModule(modules_with_corrupt_symbols, module)) {
     symbol_issues = "  (WARNING: Corrupt symbols, " +
-        PathnameStripper::File(module->debug_file()) + ", " +
-        module->debug_identifier() + ")";
+                    PathnameStripper::File(module->debug_file()) + ", " +
+                    module->debug_identifier() + ")";
   }
   uint64_t base_address = module->base_address();
-  printf("0x%08" PRIx64 " - 0x%08" PRIx64 "  %s  %s%s%s\n",
-         base_address, base_address + module->size() - 1,
+  printf("0x%08" PRIx64 " - 0x%08" PRIx64 "  %s  %s%s%s\n", base_address,
+         base_address + module->size() - 1,
          PathnameStripper::File(module->code_file()).c_str(),
          module->version().empty() ? "???" : module->version().c_str(),
          main_address != 0 && base_address == main_address ? "  (main)" : "",
@@ -773,8 +771,7 @@ static void PrintModules(
   }
 
   unsigned int module_count = modules->module_count();
-  for (unsigned int module_sequence = 0;
-       module_sequence < module_count;
+  for (unsigned int module_sequence = 0; module_sequence < module_count;
        ++module_sequence) {
     const CodeModule* module = modules->GetModuleAtSequence(module_sequence);
     PrintModule(module, modules_without_symbols, modules_with_corrupt_symbols,
@@ -798,8 +795,7 @@ static void PrintModulesMachineReadable(const CodeModules* modules) {
   }
 
   unsigned int module_count = modules->module_count();
-  for (unsigned int module_sequence = 0;
-       module_sequence < module_count;
+  for (unsigned int module_sequence = 0; module_sequence < module_count;
        ++module_sequence) {
     const CodeModule* module = modules->GetModuleAtSequence(module_sequence);
     uint64_t base_address = module->base_address();
@@ -809,11 +805,9 @@ static void PrintModulesMachineReadable(const CodeModules* modules) {
            kOutputSeparator, StripSeparator(module->version()).c_str(),
            kOutputSeparator,
            StripSeparator(PathnameStripper::File(module->debug_file())).c_str(),
-           kOutputSeparator,
-           StripSeparator(module->debug_identifier()).c_str(),
-           kOutputSeparator, base_address,
-           kOutputSeparator, base_address + module->size() - 1,
-           kOutputSeparator,
+           kOutputSeparator, StripSeparator(module->debug_identifier()).c_str(),
+           kOutputSeparator, base_address, kOutputSeparator,
+           base_address + module->size() - 1, kOutputSeparator,
            main_module != NULL && base_address == main_address ? 1 : 0);
   }
 }
@@ -835,8 +829,7 @@ void PrintProcessState(const ProcessState& process_state,
     // This field is optional.
     printf("     %s\n", cpu_info.c_str());
   }
-  printf("     %d CPU%s\n",
-         process_state.system_info()->cpu_count,
+  printf("     %d CPU%s\n", process_state.system_info()->cpu_count,
          process_state.system_info()->cpu_count != 1 ? "s" : "");
   printf("\n");
 
@@ -872,9 +865,9 @@ void PrintProcessState(const ProcessState& process_state,
   if (process_state.time_date_stamp() != 0 &&
       process_state.process_create_time() != 0 &&
       process_state.time_date_stamp() >= process_state.process_create_time()) {
-    printf("Process uptime: %d seconds\n",
-           process_state.time_date_stamp() -
-               process_state.process_create_time());
+    printf(
+        "Process uptime: %d seconds\n",
+        process_state.time_date_stamp() - process_state.process_create_time());
   } else {
     printf("Process uptime: not available\n");
   }
@@ -883,10 +876,9 @@ void PrintProcessState(const ProcessState& process_state,
   int requesting_thread = process_state.requesting_thread();
   if (requesting_thread != -1) {
     printf("\n");
-    printf("Thread %d (%s)\n",
-          requesting_thread,
-          process_state.crashed() ? "crashed" :
-                                    "requested dump, did not crash");
+    printf(
+        "Thread %d (%s)\n", requesting_thread,
+        process_state.crashed() ? "crashed" : "requested dump, did not crash");
     PrintStack(process_state.threads()->at(requesting_thread), cpu,
                output_stack_contents,
                process_state.thread_memory_regions()->at(requesting_thread),
@@ -902,15 +894,14 @@ void PrintProcessState(const ProcessState& process_state,
         printf("\n");
         printf("Thread %d\n", thread_index);
         PrintStack(process_state.threads()->at(thread_index), cpu,
-                  output_stack_contents,
-                  process_state.thread_memory_regions()->at(thread_index),
-                  process_state.modules(), resolver);
+                   output_stack_contents,
+                   process_state.thread_memory_regions()->at(thread_index),
+                   process_state.modules(), resolver);
       }
     }
   }
 
-  PrintModules(process_state.modules(),
-               process_state.modules_without_symbols(),
+  PrintModules(process_state.modules(), process_state.modules_without_symbols(),
                process_state.modules_with_corrupt_symbols());
 }
 
@@ -928,8 +919,7 @@ void PrintProcessStateMachineReadable(const ProcessState& process_state) {
          kOutputSeparator,
          // this may be empty
          StripSeparator(process_state.system_info()->cpu_info).c_str(),
-         kOutputSeparator,
-         process_state.system_info()->cpu_count);
+         kOutputSeparator, process_state.system_info()->cpu_count);
   printf("GPU%c%s%c%s%c%s\n", kOutputSeparator,
          StripSeparator(process_state.system_info()->gl_version).c_str(),
          kOutputSeparator,
@@ -951,8 +941,8 @@ void PrintProcessStateMachineReadable(const ProcessState& process_state) {
     // instead of the unhelpful "No crash"
     string assertion = process_state.assertion();
     if (!assertion.empty()) {
-      printf("%s%c%c", StripSeparator(assertion).c_str(),
-             kOutputSeparator, kOutputSeparator);
+      printf("%s%c%c", StripSeparator(assertion).c_str(), kOutputSeparator,
+             kOutputSeparator);
     } else {
       printf("No crash%c%c", kOutputSeparator, kOutputSeparator);
     }

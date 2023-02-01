@@ -58,7 +58,7 @@ BasicCodeModules::BasicCodeModules(const CodeModules* that,
 
   map_.SetMergeStrategy(strategy);
 
-  const CodeModule *main_module = that->GetMainModule();
+  const CodeModule* main_module = that->GetMainModule();
   if (main_module)
     main_address_ = main_module->base_address();
 
@@ -79,8 +79,8 @@ BasicCodeModules::BasicCodeModules(const CodeModules* that,
   for (unsigned int i = 0; i < count; ++i) {
     linked_ptr<const CodeModule> module(that->GetModuleAtIndex(i)->Copy());
     uint64_t delta = 0;
-    if (map_.RetrieveRange(module->base_address() + module->size() - 1,
-                           &module, NULL /* base */, &delta, NULL /* size */) &&
+    if (map_.RetrieveRange(module->base_address() + module->size() - 1, &module,
+                           NULL /* base */, &delta, NULL /* size */) &&
         delta > 0) {
       BPLOG(INFO) << "The range for module " << module->code_file()
                   << " was shrunk down by " << HexString(delta) << " bytes.";
@@ -94,10 +94,9 @@ BasicCodeModules::BasicCodeModules(const CodeModules* that,
   // modules should be copied from |that|.
 }
 
-BasicCodeModules::BasicCodeModules() : main_address_(0), map_() { }
+BasicCodeModules::BasicCodeModules() : main_address_(0), map_() {}
 
-BasicCodeModules::~BasicCodeModules() {
-}
+BasicCodeModules::~BasicCodeModules() {}
 
 unsigned int BasicCodeModules::module_count() const {
   return map_.GetCount();
@@ -108,7 +107,7 @@ const CodeModule* BasicCodeModules::GetModuleForAddress(
   linked_ptr<const CodeModule> module;
   if (!map_.RetrieveRange(address, &module, NULL /* base */, NULL /* delta */,
                           NULL /* size */)) {
-    BPLOG(INFO) << "No module at " << HexString(address);
+    // BPLOG(INFO) << "No module at " << HexString(address);
     return NULL;
   }
 
@@ -131,8 +130,7 @@ const CodeModule* BasicCodeModules::GetModuleAtSequence(
   return module.get();
 }
 
-const CodeModule* BasicCodeModules::GetModuleAtIndex(
-    unsigned int index) const {
+const CodeModule* BasicCodeModules::GetModuleAtIndex(unsigned int index) const {
   // This class stores everything in a RangeMap, without any more-efficient
   // way to walk the list of CodeModule objects.  Implement GetModuleAtIndex
   // using GetModuleAtSequence, which meets all of the requirements, and
@@ -144,8 +142,8 @@ const CodeModules* BasicCodeModules::Copy() const {
   return new BasicCodeModules(this, map_.GetMergeStrategy());
 }
 
-vector<linked_ptr<const CodeModule> >
-BasicCodeModules::GetShrunkRangeModules() const {
+vector<linked_ptr<const CodeModule>> BasicCodeModules::GetShrunkRangeModules()
+    const {
   return shrunk_range_modules_;
 }
 
