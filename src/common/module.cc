@@ -191,11 +191,11 @@ bool Module::AddFunction(Function* function) {
   }
 #endif
   if (enable_multiple_field_ && function_addresses_.count(function->address)) {
-    FunctionSet::iterator existing_function = std::find_if(
+    /*FunctionSet::iterator existing_function = std::find_if(
         functions_.begin(), functions_.end(),
         [&](Function* other) { return other->address == function->address; });
     assert(existing_function != functions_.end());
-    (*existing_function)->is_multiple = true;
+    (*existing_function)->is_multiple = true;*/
     // Free the duplicate that was not inserted because this Module
     // now owns it.
     return false;
