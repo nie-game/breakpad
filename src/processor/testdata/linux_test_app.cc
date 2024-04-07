@@ -35,7 +35,7 @@
 //   -lbreakpad
 // Add -m32 to build a 32-bit executable, or -m64 for a 64-bit one
 // (assuming your environment supports it). Replace -g with -gstabs+ to
-// generate an executable with STABS symbols (needs -m32), or -gdwarf-2 for one
+// generate an executable with STABS symbols (needs -m32), or -gdwarf-4 for one
 // with DWARF symbols (32- or 64-bit)
 
 #ifdef HAVE_CONFIG_H
@@ -54,7 +54,8 @@
 namespace {
 
 // google_breakpad::MinidumpCallback to invoke after minidump generation.
-static bool callback(const char* dump_path, const char* id,
+static bool callback(const char* dump_path,
+                     const char* id,
                      void* context,
                      bool succeeded) {
   if (succeeded) {
