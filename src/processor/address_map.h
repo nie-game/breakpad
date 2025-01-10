@@ -42,9 +42,10 @@
 namespace google_breakpad {
 
 // Forward declarations (for later friend declarations).
-template<class, class> class AddressMapSerializer;
+template <class, class>
+class AddressMapSerializer;
 
-template<typename AddressType, typename EntryType>
+template <typename AddressType, typename EntryType>
 class AddressMap {
  public:
   AddressMap() : map_() {}
@@ -60,7 +61,17 @@ class AddressMap {
   // entry_address is not NULL, it will be set to the address that the entry
   // was stored at.
   bool Retrieve(const AddressType& address,
-                EntryType* entry, AddressType* entry_address) const;
+                EntryType* entry,
+                AddressType* entry_address) const;
+
+  // Locates the entry stored at the highest address less than or equal to
+  // the address argument.  If there is no such range, returns false.  The
+  // entry is returned in entry, which is a required argument.  If
+  // entry_address is not NULL, it will be set to the address that the entry
+  // was stored at.
+  bool Retrieve(const AddressType& address,
+                std::vector<EntryType>* entry,
+                std::vector<AddressType>* entry_address) const;
 
   // Empties the address map, restoring it to the same state as when it was
   // initially created.
@@ -71,7 +82,7 @@ class AddressMap {
   friend class ModuleComparer;
 
   // Convenience types.
-  typedef std::map<AddressType, EntryType> AddressToEntryMap;
+  typedef std::multimap<AddressType, EntryType> AddressToEntryMap;
   typedef typename AddressToEntryMap::const_iterator MapConstIterator;
   typedef typename AddressToEntryMap::value_type MapValue;
 

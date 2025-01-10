@@ -35,12 +35,24 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <atomic>
 
 #include "common/windows/string_utils-inl.h"
 
 #include "client/windows/common/ipc_protocol.h"
 #include "client/windows/handler/exception_handler.h"
 #include "common/windows/guid_string.h"
+
+namespace nie::log {
+  struct nie_log_buffer_t {
+    const uint64_t signature = 724313520984115534ULL;
+    std::atomic<uint64_t> content_length = 16;
+  };
+  static_assert(sizeof(std::atomic<uint64_t>) == 8);
+  static_assert(sizeof(nie_log_buffer_t) == 16);
+  nie_log_buffer_t* nie_log_buffer;
+} // namespace nie::log
+
 
 namespace google_breakpad {
 
@@ -918,6 +930,12 @@ bool ExceptionHandler::WriteMinidumpWithExceptionForProcess(
     MDRawAssertionInfo* assertion,
     HANDLE process,
     bool write_requester_stream) {
+  if (nie::log::nie_log_buffer)
+    for (auto& d : app_memory_info_) {
+      if (d.ptr == nie::log::nie_log_buffer) {
+        d.length = nie::log::nie_log_buffer->content_length.load() + 1024;
+      }
+    }
   bool success = false;
   if (minidump_write_dump_) {
     HANDLE dump_file = CreateFile(next_minidump_path_c_,

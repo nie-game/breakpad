@@ -35,6 +35,7 @@
 #include "common/using_std_string.h"
 #include "google_breakpad/common/breakpad_types.h"
 #include "google_breakpad/processor/process_result.h"
+#include "stackwalker.h"
 
 namespace google_breakpad {
 
@@ -74,8 +75,7 @@ class MinidumpProcessor {
 
   // Processes the minidump structure and fills process_state with the
   // result.
-  ProcessResult Process(Minidump* minidump,
-                        ProcessState* process_state);
+  ProcessResult Process(Minidump* minidump, ProcessState* process_state);
   // Populates the cpu_* fields of the |info| parameter with textual
   // representations of the CPU type that the minidump in |dump| was
   // produced on.  Returns false if this information is not available in
@@ -103,7 +103,8 @@ class MinidumpProcessor {
   // instructions or divisions by zero, or a data address when the crash
   // was caused by a memory access violation. If enable_objdump is set, this
   // may use disassembly to compute the faulting address.
-  static string GetCrashReason(Minidump* dump, uint64_t* address,
+  static string GetCrashReason(Minidump* dump,
+                               uint64_t* address,
                                bool enable_objdump);
 
   // This function returns true if the passed-in error code is
@@ -117,7 +118,7 @@ class MinidumpProcessor {
   // You should not call this method with PROCESS_OK! Test for
   // that separately before calling this.
   static bool IsErrorUnrecoverable(ProcessResult p) {
-    assert(p !=  PROCESS_OK);
+    assert(p != PROCESS_OK);
     return (p != PROCESS_SYMBOL_SUPPLIER_INTERRUPTED);
   }
 
@@ -138,8 +139,10 @@ class MinidumpProcessor {
     enable_objdump_for_exploitability_ = enabled;
   }
 
- private:
+  std::unique_ptr<Stackwalker> stackwalker;
   StackFrameSymbolizer* frame_symbolizer_;
+
+ private:
   // Indicate whether resolver_helper_ is owned by this instance.
   bool own_frame_symbolizer_;
 

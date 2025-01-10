@@ -40,12 +40,12 @@
 
 #include <assert.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <algorithm>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "common/using_std_string.h"
 #include "google_breakpad/processor/code_module.h"
@@ -61,7 +61,8 @@ static bool file_exists(const string& file_name) {
 }
 
 SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFile(
-    const CodeModule* module, const SystemInfo* system_info,
+    const CodeModule* module,
+    const SystemInfo* system_info,
     string* symbol_file) {
   BPLOG_IF(ERROR, !symbol_file) << "SimpleSymbolSupplier::GetSymbolFile "
                                    "requires |symbol_file|";
@@ -70,9 +71,9 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFile(
 
   for (unsigned int path_index = 0; path_index < paths_.size(); ++path_index) {
     SymbolResult result;
-    if ((result = GetSymbolFileAtPathFromRoot(module, system_info,
-                                              paths_[path_index],
-                                              symbol_file)) != NOT_FOUND) {
+    if ((result = GetSymbolFileAtPathFromRoot(
+             module, system_info, paths_[path_index], symbol_file)) !=
+        NOT_FOUND) {
       return result;
     }
   }
@@ -87,16 +88,29 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFile(
   assert(symbol_data);
   symbol_data->clear();
 
-  SymbolSupplier::SymbolResult s = GetSymbolFile(module, system_info,
-                                                 symbol_file);
+  SymbolSupplier::SymbolResult s =
+      GetSymbolFile(module, system_info, symbol_file);
   if (s == FOUND) {
-    std::ifstream in(symbol_file->c_str());
-    std::getline(in, *symbol_data, string::traits_type::to_char_type(
-                     string::traits_type::eof()));
-    in.close();
+    std::ifstream file(*symbol_file, std::ios::binary | std::ios::ate);
+    std::streamsize size = file.tellg();
+    if (uint64_t(size) >= 134217728ULL) {
+      BPLOG(ERROR) << "WTF4";
+      return INTERRUPT;
+    }
+    file.seekg(0, std::ios::beg);
+
+    std::vector<char> buffer(size);
+    if (!file.read(buffer.data(), size)) {
+      BPLOG(ERROR) << "WTF3";
+      return INTERRUPT;
+    }
+    *symbol_data = std::string(buffer.data(), buffer.size());
   }
   return s;
 }
+
+#include <zstd.h>
+#include <zstd_errors.h>
 
 SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetCStringSymbolData(
     const CodeModule* module,
@@ -110,17 +124,45 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetCStringSymbolData(
   string symbol_data_string;
   SymbolSupplier::SymbolResult s =
       GetSymbolFile(module, system_info, symbol_file, &symbol_data_string);
+  *symbol_data = nullptr;
 
   if (s == FOUND) {
-    *symbol_data_size = symbol_data_string.size() + 1;
-    *symbol_data = new char[*symbol_data_size];
-    if (*symbol_data == NULL) {
-      BPLOG(ERROR) << "Memory allocation for size " << *symbol_data_size
-                   << " failed";
-      return INTERRUPT;
-    }
-    memcpy(*symbol_data, symbol_data_string.c_str(), symbol_data_string.size());
-    (*symbol_data)[symbol_data_string.size()] = '\0';
+    size_t capacity = 1024;
+    do {
+      if (*symbol_data)
+        delete *symbol_data;
+      *symbol_data = new char[capacity];
+      if (*symbol_data == NULL) {
+        BPLOG(ERROR) << "Memory allocation for size " << capacity << " failed";
+        return INTERRUPT;
+      }
+      auto decres = ZSTD_decompress(*symbol_data, capacity - 1,
+                                    symbol_data_string.c_str(),
+                                    symbol_data_string.size());
+      if (decres < capacity) {
+        *symbol_data_size = decres + 1;
+        break;
+      } else {
+        if (!ZSTD_isError(decres)) {
+          BPLOG(ERROR) << "WTF1: " << *symbol_file;
+          return INTERRUPT;
+        }
+        auto code = ZSTD_getErrorCode(decres);
+        if (code == ZSTD_error_dstSize_tooSmall) {
+          capacity *= 2;
+          continue;
+        } else {
+          BPLOG(ERROR) << "WTF2: " << *symbol_file << " "
+                       << ZSTD_getErrorName(decres);
+          return INTERRUPT;
+        }
+      }
+      assert(false);
+    } while (true);
+    (*symbol_data)[*symbol_data_size - 1] = '\0';
+    BPLOG(INFO) << "Decompressed " << *symbol_file << " from "
+                << symbol_data_string.size() << " to " << *symbol_data_size
+                << " done";
     memory_buffers_.insert(make_pair(module->code_file(), *symbol_data));
   }
   return s;
@@ -138,13 +180,15 @@ void SimpleSymbolSupplier::FreeSymbolData(const CodeModule* module) {
                 << module->code_file();
     return;
   }
-  delete [] it->second;
+  delete[] it->second;
   memory_buffers_.erase(it);
 }
 
 SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFileAtPathFromRoot(
-    const CodeModule* module, const SystemInfo* system_info,
-    const string& root_path, string* symbol_file) {
+    const CodeModule* module,
+    const SystemInfo* system_info,
+    const string& root_path,
+    string* symbol_file) {
   BPLOG_IF(ERROR, !symbol_file) << "SimpleSymbolSupplier::GetSymbolFileAtPath "
                                    "requires |symbol_file|";
   assert(symbol_file);
@@ -157,7 +201,7 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFileAtPathFromRoot(
   string path = root_path;
 
   // Append the debug (pdb) file name as a directory name.
-  path.append("/");
+  /*path.append("/");
   string debug_file_name = PathnameStripper::File(module->debug_file());
   if (debug_file_name.empty()) {
     BPLOG(ERROR) << "Can't construct symbol file path without debug_file "
@@ -165,16 +209,16 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFileAtPathFromRoot(
                     PathnameStripper::File(module->code_file()) << ")";
     return NOT_FOUND;
   }
-  path.append(debug_file_name);
+  path.append(debug_file_name);*/
 
   // Append the identifier as a directory name.
   path.append("/");
   string identifier = module->debug_identifier();
   if (identifier.empty()) {
     BPLOG(ERROR) << "Can't construct symbol file path without debug_identifier "
-                    "(code_file = " <<
-                    PathnameStripper::File(module->code_file()) <<
-                    ", debug_file = " << debug_file_name << ")";
+                    "(code_file = "
+                 << PathnameStripper::File(module->code_file())
+                 << ", debug_file = " << ")";
     return NOT_FOUND;
   }
   path.append(identifier);
@@ -182,7 +226,7 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFileAtPathFromRoot(
   // Transform the debug file name into one ending in .sym.  If the existing
   // name ends in .pdb, strip the .pdb.  Otherwise, add .sym to the non-.pdb
   // name.
-  path.append("/");
+  /*path.append("/");
   string debug_file_extension;
   if (debug_file_name.size() > 4)
     debug_file_extension = debug_file_name.substr(debug_file_name.size() - 4);
@@ -192,8 +236,8 @@ SymbolSupplier::SymbolResult SimpleSymbolSupplier::GetSymbolFileAtPathFromRoot(
     path.append(debug_file_name.substr(0, debug_file_name.size() - 4));
   } else {
     path.append(debug_file_name);
-  }
-  path.append(".sym");
+  }*/
+  path.append(".sym.zst");
 
   if (!file_exists(path)) {
     BPLOG(INFO) << "No symbol file at " << path;

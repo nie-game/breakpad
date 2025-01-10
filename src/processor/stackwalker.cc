@@ -50,16 +50,16 @@
 #include "google_breakpad/processor/system_info.h"
 #include "processor/linked_ptr.h"
 #include "processor/logging.h"
-#include "processor/stackwalker_ppc.h"
-#include "processor/stackwalker_ppc64.h"
-#include "processor/stackwalker_sparc.h"
-#include "processor/stackwalker_x86.h"
 #include "processor/stackwalker_amd64.h"
 #include "processor/stackwalker_arm.h"
 #include "processor/stackwalker_arm64.h"
 #include "processor/stackwalker_mips.h"
+#include "processor/stackwalker_ppc.h"
+#include "processor/stackwalker_ppc64.h"
 #include "processor/stackwalker_riscv.h"
 #include "processor/stackwalker_riscv64.h"
+#include "processor/stackwalker_sparc.h"
+#include "processor/stackwalker_x86.h"
 
 namespace google_breakpad {
 
@@ -105,9 +105,9 @@ void InsertSpecialAttentionModule(
     }
   }
   if (!found) {
-    BPLOG(INFO) << ((symbolizer_result == StackFrameSymbolizer::kError) ?
-                       "Couldn't load symbols for: " :
-                       "Detected corrupt symbols for: ")
+    BPLOG(INFO) << ((symbolizer_result == StackFrameSymbolizer::kError)
+                        ? "Couldn't load symbols for: "
+                        : "Detected corrupt symbols for: ")
                 << module->debug_file() << "|" << module->debug_identifier();
     modules->push_back(module);
   }
@@ -147,8 +147,8 @@ bool Stackwalker::Walk(
     // Resolve the module information, if a module map was provided.
     StackFrameSymbolizer::SymbolizerResult symbolizer_result =
         frame_symbolizer_->FillSourceLineInfo(modules_, unloaded_modules_,
-                                              system_info_,
-                                              frame.get(), &inlined_frames);
+                                              system_info_, frame.get(),
+                                              &inlined_frames);
     switch (symbolizer_result) {
       case StackFrameSymbolizer::kInterrupt:
         BPLOG(INFO) << "Stack walk is interrupted.";
@@ -171,11 +171,11 @@ bool Stackwalker::Walk(
 
     // Keep track of the number of dubious frames so far.
     switch (frame.get()->trust) {
-       case StackFrame::FRAME_TRUST_NONE:
-       case StackFrame::FRAME_TRUST_SCAN:
-       case StackFrame::FRAME_TRUST_CFI_SCAN:
-         scanned_frames++;
-         break;
+      case StackFrame::FRAME_TRUST_NONE:
+      case StackFrame::FRAME_TRUST_SCAN:
+      case StackFrame::FRAME_TRUST_CFI_SCAN:
+        scanned_frames++;
+        break;
       default:
         break;
     }
@@ -222,78 +222,73 @@ Stackwalker* Stackwalker::StackwalkerForCPU(
   uint32_t cpu = context->GetContextCPU();
   switch (cpu) {
     case MD_CONTEXT_X86:
-      cpu_stackwalker = new StackwalkerX86(system_info,
-                                           context->GetContextX86(),
-                                           memory, modules, frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerX86(system_info, context->GetContextX86(), memory,
+                             modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_PPC:
-      cpu_stackwalker = new StackwalkerPPC(system_info,
-                                           context->GetContextPPC(),
-                                           memory, modules, frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerPPC(system_info, context->GetContextPPC(), memory,
+                             modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_PPC64:
-      cpu_stackwalker = new StackwalkerPPC64(system_info,
-                                             context->GetContextPPC64(),
-                                             memory, modules, frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerPPC64(system_info, context->GetContextPPC64(), memory,
+                               modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_AMD64:
-      cpu_stackwalker = new StackwalkerAMD64(system_info,
-                                             context->GetContextAMD64(),
-                                             memory, modules, frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerAMD64(system_info, context->GetContextAMD64(), memory,
+                               modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_SPARC:
-      cpu_stackwalker = new StackwalkerSPARC(system_info,
-                                             context->GetContextSPARC(),
-                                             memory, modules, frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerSPARC(system_info, context->GetContextSPARC(), memory,
+                               modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_MIPS:
     case MD_CONTEXT_MIPS64:
-      cpu_stackwalker = new StackwalkerMIPS(system_info,
-                                            context->GetContextMIPS(),
-                                            memory, modules, frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerMIPS(system_info, context->GetContextMIPS(), memory,
+                              modules, frame_symbolizer);
       break;
 
-    case MD_CONTEXT_ARM:
-    {
+    case MD_CONTEXT_ARM: {
       int fp_register = -1;
       if (system_info->os_short == "ios")
         fp_register = MD_CONTEXT_ARM_REG_IOS_FP;
-      cpu_stackwalker = new StackwalkerARM(system_info,
-                                           context->GetContextARM(),
-                                           fp_register, memory, modules,
-                                           frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerARM(system_info, context->GetContextARM(), fp_register,
+                             memory, modules, frame_symbolizer);
       break;
     }
 
     case MD_CONTEXT_ARM64:
-      cpu_stackwalker = new StackwalkerARM64(system_info,
-                                             context->GetContextARM64(),
-                                             memory, modules,
-                                             frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerARM64(system_info, context->GetContextARM64(), memory,
+                               modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_RISCV:
-      cpu_stackwalker = new StackwalkerRISCV(system_info,
-                                             context->GetContextRISCV(),
-                                             memory, modules,
-                                             frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerRISCV(system_info, context->GetContextRISCV(), memory,
+                               modules, frame_symbolizer);
       break;
 
     case MD_CONTEXT_RISCV64:
-      cpu_stackwalker = new StackwalkerRISCV64(system_info,
-                                               context->GetContextRISCV64(),
-                                               memory, modules,
-                                               frame_symbolizer);
+      cpu_stackwalker =
+          new StackwalkerRISCV64(system_info, context->GetContextRISCV64(),
+                                 memory, modules, frame_symbolizer);
       break;
   }
 
-  BPLOG_IF(ERROR, !cpu_stackwalker) << "Unknown CPU type " << HexString(cpu) <<
-                                       ", can't choose a stackwalker "
+  BPLOG_IF(ERROR, !cpu_stackwalker) << "Unknown CPU type " << HexString(cpu)
+                                    << ", can't choose a stackwalker "
                                        "implementation";
   if (cpu_stackwalker) {
     cpu_stackwalker->unloaded_modules_ = unloaded_modules;
@@ -330,6 +325,32 @@ bool Stackwalker::TerminateWalk(uint64_t caller_ip,
 bool Stackwalker::InstructionAddressSeemsValid(uint64_t address) const {
   StackFrame frame;
   frame.instruction = address;
+  StackFrameSymbolizer::SymbolizerResult symbolizer_result =
+      frame_symbolizer_->FillSourceLineInfo(modules_, unloaded_modules_,
+                                            system_info_, &frame, nullptr);
+
+  if (!frame.module) {
+    // not inside any loaded module
+    return false;
+  }
+
+  if (!frame_symbolizer_->HasImplementation()) {
+    // No valid implementation to symbolize stack frame, but the address is
+    // within a known module.
+    return true;
+  }
+
+  if (symbolizer_result != StackFrameSymbolizer::kNoError &&
+      symbolizer_result != StackFrameSymbolizer::kWarningCorruptSymbols) {
+    // Some error occurred during symbolization, but the address is within a
+    // known module
+    return true;
+  }
+
+  return !frame.function_name.empty();
+}
+
+bool Stackwalker::look(StackFrame& frame) const {
   StackFrameSymbolizer::SymbolizerResult symbolizer_result =
       frame_symbolizer_->FillSourceLineInfo(modules_, unloaded_modules_,
                                             system_info_, &frame, nullptr);

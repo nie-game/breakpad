@@ -66,6 +66,7 @@
 #include <config.h>  // Must come first
 #endif
 
+#include <atomic>
 #include "client/linux/handler/exception_handler.h"
 
 #include <errno.h>
@@ -89,15 +90,15 @@
 #include <utility>
 #include <vector>
 
-#include "common/basictypes.h"
-#include "common/linux/breakpad_getcontext.h"
-#include "common/linux/linux_libc_support.h"
-#include "common/memory_allocator.h"
 #include "client/linux/log/log.h"
 #include "client/linux/microdump_writer/microdump_writer.h"
 #include "client/linux/minidump_writer/linux_dumper.h"
 #include "client/linux/minidump_writer/minidump_writer.h"
+#include "common/basictypes.h"
+#include "common/linux/breakpad_getcontext.h"
 #include "common/linux/eintr_wrapper.h"
+#include "common/linux/linux_libc_support.h"
+#include "common/memory_allocator.h"
 #include "third_party/lss/linux_syscall_support.h"
 
 #if defined(__ANDROID__)
@@ -108,15 +109,24 @@
 #define PR_SET_PTRACER 0x59616d61
 #endif
 
+namespace nie::log {
+struct nie_log_buffer_t {
+  const uint64_t signature = 724313520984115534ULL;
+  std::atomic<uint64_t> content_length = 16;
+};
+static_assert(sizeof(std::atomic<uint64_t>) == 8);
+static_assert(sizeof(nie_log_buffer_t) == 16);
+nie_log_buffer_t* nie_log_buffer;
+}  // namespace nie::log
+
 namespace google_breakpad {
 
 namespace {
 // The list of signals which we consider to be crashes. The default action for
 // all these signals must be Core (see man 7 signal) because we rethrow the
 // signal after handling it and expect that it'll be fatal.
-const int kExceptionSignals[] = {
-  SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS, SIGTRAP
-};
+const int kExceptionSignals[] = {SIGSEGV, SIGABRT, SIGFPE,
+                                 SIGILL,  SIGBUS,  SIGTRAP};
 const int kNumHandledSignals =
     sizeof(kExceptionSignals) / sizeof(kExceptionSignals[0]);
 struct sigaction old_handlers[kNumHandledSignals];
@@ -329,7 +339,6 @@ void ExceptionHandler::RestoreHandlersLocked() {
 // Runs on the crashing thread.
 // static
 void ExceptionHandler::SignalHandler(int sig, siginfo_t* info, void* uc) {
-
   // Give the first chance handler a chance to recover from this signal
   //
   // This is primarily used by V8. V8 uses guard regions to guarantee memory
@@ -446,8 +455,8 @@ bool ExceptionHandler::HandleSignal(int /*sig*/, siginfo_t* info, void* uc) {
 
   // Allow ourselves to be dumped if the signal is trusted.
   bool signal_trusted = info->si_code > 0;
-  bool signal_pid_trusted = info->si_code == SI_USER ||
-      info->si_code == SI_TKILL;
+  bool signal_pid_trusted =
+      info->si_code == SI_USER || info->si_code == SI_TKILL;
   if (signal_trusted || (signal_pid_trusted && info->si_pid == getpid())) {
     sys_prctl(PR_SET_DUMPABLE, 1, 0, 0, 0);
   }
@@ -525,8 +534,9 @@ bool ExceptionHandler::GenerateDump(CrashContext* context) {
     // Creating the pipe failed. We'll log an error but carry on anyway,
     // as we'll probably still get a useful crash report. All that will happen
     // is the write() and read() calls will fail with EBADF
-    static const char no_pipe_msg[] = "ExceptionHandler::GenerateDump "
-                                      "sys_pipe failed:";
+    static const char no_pipe_msg[] =
+        "ExceptionHandler::GenerateDump "
+        "sys_pipe failed:";
     logger::write(no_pipe_msg, sizeof(no_pipe_msg) - 1);
     logger::write(strerror(errno), strlen(strerror(errno)));
     logger::write("\n", 1);
@@ -535,9 +545,8 @@ bool ExceptionHandler::GenerateDump(CrashContext* context) {
     fdes[0] = fdes[1] = -1;
   }
 
-  const pid_t child = sys_clone(
-      ThreadEntry, stack, CLONE_FS | CLONE_UNTRACED, &thread_arg, NULL, NULL,
-      NULL);
+  const pid_t child = sys_clone(ThreadEntry, stack, CLONE_FS | CLONE_UNTRACED,
+                                &thread_arg, NULL, NULL, NULL);
   if (child == -1) {
     sys_close(fdes[0]);
     sys_close(fdes[1]);
@@ -573,8 +582,9 @@ void ExceptionHandler::SendContinueSignalToChild() {
   int r;
   r = HANDLE_EINTR(sys_write(fdes[1], &okToContinueMessage, sizeof(char)));
   if (r == -1) {
-    static const char msg[] = "ExceptionHandler::SendContinueSignalToChild "
-                              "sys_write failed:";
+    static const char msg[] =
+        "ExceptionHandler::SendContinueSignalToChild "
+        "sys_write failed:";
     logger::write(msg, sizeof(msg) - 1);
     logger::write(strerror(errno), strlen(strerror(errno)));
     logger::write("\n", 1);
@@ -588,8 +598,9 @@ void ExceptionHandler::WaitForContinueSignal() {
   char receivedMessage;
   r = HANDLE_EINTR(sys_read(fdes[0], &receivedMessage, sizeof(char)));
   if (r == -1) {
-    static const char msg[] = "ExceptionHandler::WaitForContinueSignal "
-                              "sys_read failed:";
+    static const char msg[] =
+        "ExceptionHandler::WaitForContinueSignal "
+        "sys_read failed:";
     logger::write(msg, sizeof(msg) - 1);
     logger::write(strerror(errno), strlen(strerror(errno)));
     logger::write("\n", 1);
@@ -598,46 +609,37 @@ void ExceptionHandler::WaitForContinueSignal() {
 
 // This function runs in a compromised context: see the top of the file.
 // Runs on the cloned process.
-bool ExceptionHandler::DoDump(pid_t crashing_process, const void* context,
+bool ExceptionHandler::DoDump(pid_t crashing_process,
+                              const void* context,
                               size_t context_size) {
   const bool may_skip_dump =
       minidump_descriptor_.skip_dump_if_principal_mapping_not_referenced();
   const uintptr_t principal_mapping_address =
       minidump_descriptor_.address_within_principal_mapping();
   const bool sanitize_stacks = minidump_descriptor_.sanitize_stacks();
+  if (nie::log::nie_log_buffer)
+    for (auto& d : app_memory_list_) {
+      if (d.ptr == nie::log::nie_log_buffer) {
+        d.length = nie::log::nie_log_buffer->content_length.load() + 1024;
+      }
+    }
   if (minidump_descriptor_.IsMicrodumpOnConsole()) {
     return google_breakpad::WriteMicrodump(
-        crashing_process,
-        context,
-        context_size,
-        mapping_list_,
-        may_skip_dump,
-        principal_mapping_address,
-        sanitize_stacks,
+        crashing_process, context, context_size, mapping_list_, may_skip_dump,
+        principal_mapping_address, sanitize_stacks,
         *minidump_descriptor_.microdump_extra_info());
   }
   if (minidump_descriptor_.IsFD()) {
-    return google_breakpad::WriteMinidump(minidump_descriptor_.fd(),
-                                          minidump_descriptor_.size_limit(),
-                                          crashing_process,
-                                          context,
-                                          context_size,
-                                          mapping_list_,
-                                          app_memory_list_,
-                                          may_skip_dump,
-                                          principal_mapping_address,
-                                          sanitize_stacks);
+    return google_breakpad::WriteMinidump(
+        minidump_descriptor_.fd(), minidump_descriptor_.size_limit(),
+        crashing_process, context, context_size, mapping_list_,
+        app_memory_list_, may_skip_dump, principal_mapping_address,
+        sanitize_stacks);
   }
-  return google_breakpad::WriteMinidump(minidump_descriptor_.path(),
-                                        minidump_descriptor_.size_limit(),
-                                        crashing_process,
-                                        context,
-                                        context_size,
-                                        mapping_list_,
-                                        app_memory_list_,
-                                        may_skip_dump,
-                                        principal_mapping_address,
-                                        sanitize_stacks);
+  return google_breakpad::WriteMinidump(
+      minidump_descriptor_.path(), minidump_descriptor_.size_limit(),
+      crashing_process, context, context_size, mapping_list_, app_memory_list_,
+      may_skip_dump, principal_mapping_address, sanitize_stacks);
 }
 
 // static
@@ -693,11 +695,11 @@ bool ExceptionHandler::WriteMinidump() {
     // perhaps with a small negative offset in case there is any code that
     // objects to them being equal.
     context.context.uc_mcontext.gregs[REG_UESP] =
-      context.context.uc_mcontext.gregs[REG_EBP] - 16;
+        context.context.uc_mcontext.gregs[REG_EBP] - 16;
     // The stack saving is based off of REG_ESP so it must be set to match the
     // new REG_UESP.
     context.context.uc_mcontext.gregs[REG_ESP] =
-      context.context.uc_mcontext.gregs[REG_UESP];
+        context.context.uc_mcontext.gregs[REG_UESP];
   }
 #endif
 
@@ -729,7 +731,7 @@ bool ExceptionHandler::WriteMinidump() {
   context.siginfo.si_addr =
       reinterpret_cast<void*>(context.context.uc_mcontext.__gregs[REG_PC]);
 #else
-# error "This code has not been ported to your platform yet."
+#error "This code has not been ported to your platform yet."
 #endif
 
   return GenerateDump(&context);
@@ -755,7 +757,7 @@ void ExceptionHandler::AddMappingInfo(const string& name,
 
 void ExceptionHandler::RegisterAppMemory(void* ptr, size_t length) {
   AppMemoryList::iterator iter =
-    std::find(app_memory_list_.begin(), app_memory_list_.end(), ptr);
+      std::find(app_memory_list_.begin(), app_memory_list_.end(), ptr);
   if (iter != app_memory_list_.end()) {
     // Don't allow registering the same pointer twice.
     return;
@@ -769,7 +771,7 @@ void ExceptionHandler::RegisterAppMemory(void* ptr, size_t length) {
 
 void ExceptionHandler::UnregisterAppMemory(void* ptr) {
   AppMemoryList::iterator iter =
-    std::find(app_memory_list_.begin(), app_memory_list_.end(), ptr);
+      std::find(app_memory_list_.begin(), app_memory_list_.end(), ptr);
   if (iter != app_memory_list_.end()) {
     app_memory_list_.erase(iter);
   }
@@ -784,10 +786,9 @@ bool ExceptionHandler::WriteMinidumpForChild(pid_t child,
   // This function is not run in a compromised context.
   MinidumpDescriptor descriptor(dump_path);
   descriptor.UpdatePath();
-  if (!google_breakpad::WriteMinidump(descriptor.path(),
-                                      child,
+  if (!google_breakpad::WriteMinidump(descriptor.path(), child,
                                       child_blamed_thread))
-      return false;
+    return false;
 
   return callback ? callback(descriptor, callback_context, true) : true;
 }

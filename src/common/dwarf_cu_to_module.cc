@@ -33,7 +33,7 @@
 // For <inttypes.h> PRI* macros, before anything else might #include it.
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
-#endif  /* __STDC_FORMAT_MACROS */
+#endif /* __STDC_FORMAT_MACROS */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>  // Must come first
@@ -49,10 +49,11 @@
 #include <algorithm>
 #include <memory>
 #include <numeric>
+#include <print>
 #include <utility>
 
-#include "common/string_view.h"
 #include "common/dwarf_line_to_module.h"
+#include "common/string_view.h"
 #include "google_breakpad/common/breakpad_types.h"
 
 namespace google_breakpad {
@@ -61,8 +62,8 @@ using std::accumulate;
 using std::map;
 using std::pair;
 using std::sort;
-using std::vector;
 using std::unique_ptr;
+using std::vector;
 
 // Data provided by a DWARF specification DIE.
 //
@@ -123,23 +124,26 @@ DwarfCUToModule::FileContext::FileContext(const string& filename,
     : filename_(filename),
       module_(module),
       handle_inter_cu_refs_(handle_inter_cu_refs),
-      file_private_(new FilePrivate()) {
-}
+      file_private_(new FilePrivate()) {}
 
 DwarfCUToModule::FileContext::~FileContext() {
-  for (std::vector<uint8_t *>::iterator i = uncompressed_sections_.begin();
-        i != uncompressed_sections_.end(); ++i) {
+  for (std::vector<uint8_t*>::iterator i = uncompressed_sections_.begin();
+       i != uncompressed_sections_.end(); ++i) {
     delete[] *i;
   }
 }
 
 void DwarfCUToModule::FileContext::AddSectionToSectionMap(
-    const string& name, const uint8_t* contents, uint64_t length) {
+    const string& name,
+    const uint8_t* contents,
+    uint64_t length) {
   section_map_[name] = std::make_pair(contents, length);
 }
 
 void DwarfCUToModule::FileContext::AddManagedSectionToSectionMap(
-    const string& name, uint8_t* contents, uint64_t length) {
+    const string& name,
+    uint8_t* contents,
+    uint64_t length) {
   section_map_[name] = std::make_pair(contents, length);
   uncompressed_sections_.push_back(contents);
 }
@@ -148,8 +152,7 @@ void DwarfCUToModule::FileContext::ClearSectionMapForTest() {
   section_map_.clear();
 }
 
-const SectionMap&
-DwarfCUToModule::FileContext::section_map() const {
+const SectionMap& DwarfCUToModule::FileContext::section_map() const {
   return section_map_;
 }
 
@@ -159,7 +162,8 @@ void DwarfCUToModule::FileContext::ClearSpecifications() {
 }
 
 bool DwarfCUToModule::FileContext::IsUnhandledInterCUReference(
-    uint64_t offset, uint64_t compilation_unit_start) const {
+    uint64_t offset,
+    uint64_t compilation_unit_start) const {
   if (handle_inter_cu_refs_)
     return false;
   return offset < compilation_unit_start;
@@ -233,25 +237,23 @@ struct DwarfCUToModule::CUContext {
 
   // Collect all the data from the CU that a RangeListReader needs to read a
   // range.
-  bool AssembleRangeListInfo(
-      RangeListReader::CURangesInfo* info) {
-    const SectionMap& section_map
-        = file_context->section_map();
+  bool AssembleRangeListInfo(RangeListReader::CURangesInfo* info) {
+    const SectionMap& section_map = file_context->section_map();
     info->version_ = version;
     info->base_address_ = low_pc;
     info->ranges_base_ = ranges_base;
-    const char* section_name = (version <= 4 ?
-                                ".debug_ranges" : ".debug_rnglists");
-    SectionMap::const_iterator map_entry
-        = GetSectionByName(section_map, section_name);
+    const char* section_name =
+        (version <= 4 ? ".debug_ranges" : ".debug_rnglists");
+    SectionMap::const_iterator map_entry =
+        GetSectionByName(section_map, section_name);
     if (map_entry == section_map.end()) {
       return false;
     }
     info->buffer_ = map_entry->second.first;
     info->size_ = map_entry->second.second;
     if (version > 4) {
-      SectionMap::const_iterator map_entry
-          = GetSectionByName(section_map, ".debug_addr");
+      SectionMap::const_iterator map_entry =
+          GetSectionByName(section_map, ".debug_addr");
       if (map_entry == section_map.end()) {
         return false;
       }
@@ -291,12 +293,13 @@ struct DwarfCUToModule::DIEContext {
 };
 
 // An abstract base class for all the dumper's DIE handlers.
-class DwarfCUToModule::GenericDIEHandler: public DIEHandler {
+class DwarfCUToModule::GenericDIEHandler : public DIEHandler {
  public:
   // Create a handler for the DIE at OFFSET whose compilation unit is
   // described by CU_CONTEXT, and whose immediate context is described
   // by PARENT_CONTEXT.
-  GenericDIEHandler(CUContext* cu_context, DIEContext* parent_context,
+  GenericDIEHandler(CUContext* cu_context,
+                    DIEContext* parent_context,
                     uint64_t offset)
       : cu_context_(cu_context),
         parent_context_(parent_context),
@@ -305,7 +308,8 @@ class DwarfCUToModule::GenericDIEHandler: public DIEHandler {
         specification_(NULL),
         no_specification(false),
         abstract_origin_(NULL),
-        forward_ref_die_offset_(0), specification_offset_(0) { }
+        forward_ref_die_offset_(0),
+        specification_offset_(0) {}
 
   // Derived classes' ProcessAttributeUnsigned can defer to this to
   // handle DW_AT_declaration, or simply not override it.
@@ -388,8 +392,11 @@ void DwarfCUToModule::GenericDIEHandler::ProcessAttributeUnsigned(
     enum DwarfForm form,
     uint64_t data) {
   switch (attr) {
-    case DW_AT_declaration: declaration_ = (data != 0); break;
-    default: break;
+    case DW_AT_declaration:
+      declaration_ = (data != 0);
+      break;
+    default:
+      break;
   }
 }
 
@@ -435,7 +442,8 @@ void DwarfCUToModule::GenericDIEHandler::ProcessAttributeReference(
       specification_offset_ = data;
       break;
     }
-    default: break;
+    default:
+      break;
   }
 }
 
@@ -469,7 +477,8 @@ void DwarfCUToModule::GenericDIEHandler::ProcessAttributeString(
       }
       break;
     }
-    default: break;
+    default:
+      break;
   }
 }
 
@@ -553,15 +562,12 @@ StringView DwarfCUToModule::GenericDIEHandler::ComputeQualifiedName(
 }
 
 static bool IsEmptyRange(const vector<Module::Range>& ranges) {
-  uint64_t size = accumulate(ranges.cbegin(), ranges.cend(), 0,
-    [](uint64_t total, Module::Range entry) {
-      return total + entry.size;
-    }
-  );
+  uint64_t size = accumulate(
+      ranges.cbegin(), ranges.cend(), 0,
+      [](uint64_t total, Module::Range entry) { return total + entry.size; });
 
   return size == 0;
 }
-
 
 // A handler for DW_TAG_inlined_subroutine DIEs.
 class DwarfCUToModule::InlineHandler : public GenericDIEHandler {
@@ -593,13 +599,13 @@ class DwarfCUToModule::InlineHandler : public GenericDIEHandler {
   // The fully-qualified name, as derived from name_attribute_,
   // specification_, parent_context_. Computed in EndAttributes.
   StringView name_;
-  uint64_t low_pc_;            // DW_AT_low_pc
-  uint64_t high_pc_;           // DW_AT_high_pc
-  DwarfForm high_pc_form_;     // DW_AT_high_pc can be length or address.
-  DwarfForm ranges_form_;      // DW_FORM_sec_offset or DW_FORM_rnglistx
-  uint64_t ranges_data_;       // DW_AT_ranges
-  int call_site_line_;         // DW_AT_call_line
-  int call_site_file_id_;      // DW_AT_call_file
+  uint64_t low_pc_;         // DW_AT_low_pc
+  uint64_t high_pc_;        // DW_AT_high_pc
+  DwarfForm high_pc_form_;  // DW_AT_high_pc can be length or address.
+  DwarfForm ranges_form_;   // DW_FORM_sec_offset or DW_FORM_rnglistx
+  uint64_t ranges_data_;    // DW_AT_ranges
+  int call_site_line_;      // DW_AT_call_line
+  int call_site_file_id_;   // DW_AT_call_file
   int inline_nest_level_;
   bool has_range_data_;
   // A vector of inlines in the same nest level. It's owned by its parent
@@ -669,10 +675,8 @@ void DwarfCUToModule::InlineHandler::Finish() {
   if (!has_range_data_) {
     if (high_pc_form_ != DW_FORM_addr &&
         high_pc_form_ != DW_FORM_GNU_addr_index &&
-        high_pc_form_ != DW_FORM_addrx &&
-        high_pc_form_ != DW_FORM_addrx1 &&
-        high_pc_form_ != DW_FORM_addrx2 &&
-        high_pc_form_ != DW_FORM_addrx3 &&
+        high_pc_form_ != DW_FORM_addrx && high_pc_form_ != DW_FORM_addrx1 &&
+        high_pc_form_ != DW_FORM_addrx2 && high_pc_form_ != DW_FORM_addrx3 &&
         high_pc_form_ != DW_FORM_addrx4) {
       high_pc_ += low_pc_;
     }
@@ -684,8 +688,8 @@ void DwarfCUToModule::InlineHandler::Finish() {
     if (ranges_handler) {
       RangeListReader::CURangesInfo cu_info;
       if (cu_context_->AssembleRangeListInfo(&cu_info)) {
-        if (!ranges_handler->ReadRanges(ranges_form_, ranges_data_,
-                                        &cu_info, &ranges)) {
+        if (!ranges_handler->ReadRanges(ranges_form_, ranges_data_, &cu_info,
+                                        &ranges)) {
           ranges.clear();
           cu_context_->reporter->MalformedRangeList(ranges_data_);
         }
@@ -701,23 +705,26 @@ void DwarfCUToModule::InlineHandler::Finish() {
   }
 
   // Every DW_TAG_inlined_subroutine should have a DW_AT_abstract_origin.
-  assert(specification_offset_ != 0);
+  if (specification_offset_ != 0)
 
-  Module::InlineOriginMap& inline_origin_map =
-      cu_context_->file_context->module_
-          ->inline_origin_maps[cu_context_->file_context->filename_];
-  inline_origin_map.SetReference(specification_offset_, specification_offset_);
-  Module::InlineOrigin* origin =
-      inline_origin_map.GetOrCreateInlineOrigin(specification_offset_, name_);
-  unique_ptr<Module::Inline> in(
-      new Module::Inline(origin, ranges, call_site_line_, call_site_file_id_,
-                         inline_nest_level_, std::move(child_inlines_)));
-  inlines_.push_back(std::move(in));
+  {
+    Module::InlineOriginMap& inline_origin_map =
+        cu_context_->file_context->module_
+            ->inline_origin_maps[cu_context_->file_context->filename_];
+    inline_origin_map.SetReference(specification_offset_,
+                                   specification_offset_);
+    Module::InlineOrigin* origin =
+        inline_origin_map.GetOrCreateInlineOrigin(specification_offset_, name_);
+    unique_ptr<Module::Inline> in(
+        new Module::Inline(origin, ranges, call_site_line_, call_site_file_id_,
+                           inline_nest_level_, std::move(child_inlines_)));
+    inlines_.push_back(std::move(in));
+  }
 }
 
 // A handler for DIEs that contain functions and contribute a
 // component to their names: namespaces, classes, etc.
-class DwarfCUToModule::NamedScopeHandler: public GenericDIEHandler {
+class DwarfCUToModule::NamedScopeHandler : public GenericDIEHandler {
  public:
   NamedScopeHandler(CUContext* cu_context,
                     DIEContext* parent_context,
@@ -729,12 +736,12 @@ class DwarfCUToModule::NamedScopeHandler: public GenericDIEHandler {
   DIEHandler* FindChildHandler(uint64_t offset, enum DwarfTag tag);
 
  private:
-  DIEContext child_context_; // A context for our children.
+  DIEContext child_context_;  // A context for our children.
   bool handle_inline_;
 };
 
 // A handler class for DW_TAG_subprogram DIEs.
-class DwarfCUToModule::FuncHandler: public GenericDIEHandler {
+class DwarfCUToModule::FuncHandler : public GenericDIEHandler {
  public:
   FuncHandler(CUContext* cu_context,
               DIEContext* parent_context,
@@ -765,16 +772,16 @@ class DwarfCUToModule::FuncHandler: public GenericDIEHandler {
   // The fully-qualified name, as derived from name_attribute_,
   // specification_, parent_context_.  Computed in EndAttributes.
   StringView name_;
-  uint64_t low_pc_, high_pc_; // DW_AT_low_pc, DW_AT_high_pc
-  DwarfForm high_pc_form_; // DW_AT_high_pc can be length or address.
-  DwarfForm ranges_form_; // DW_FORM_sec_offset or DW_FORM_rnglistx
-  uint64_t ranges_data_;  // DW_AT_ranges
+  uint64_t low_pc_, high_pc_;  // DW_AT_low_pc, DW_AT_high_pc
+  DwarfForm high_pc_form_;     // DW_AT_high_pc can be length or address.
+  DwarfForm ranges_form_;      // DW_FORM_sec_offset or DW_FORM_rnglistx
+  uint64_t ranges_data_;       // DW_AT_ranges
   bool inline_;
   vector<unique_ptr<Module::Inline>> child_inlines_;
   bool handle_inline_;
   bool has_qualified_name_;
   bool has_range_data_;
-  DIEContext child_context_; // A context for our children.
+  DIEContext child_context_;  // A context for our children.
 };
 
 void DwarfCUToModule::FuncHandler::ProcessAttributeUnsigned(
@@ -785,9 +792,13 @@ void DwarfCUToModule::FuncHandler::ProcessAttributeUnsigned(
     // If this attribute is present at all --- even if its value is
     // DW_INL_not_inlined --- then GCC may cite it as someone else's
     // DW_AT_abstract_origin attribute.
-    case DW_AT_inline:      inline_  = true; break;
+    case DW_AT_inline:
+      inline_ = true;
+      break;
 
-    case DW_AT_low_pc:      low_pc_  = data; break;
+    case DW_AT_low_pc:
+      low_pc_ = data;
+      break;
     case DW_AT_high_pc:
       high_pc_form_ = form;
       high_pc_ = data;
@@ -811,16 +822,17 @@ void DwarfCUToModule::FuncHandler::ProcessAttributeSigned(
     // If this attribute is present at all --- even if its value is
     // DW_INL_not_inlined --- then GCC may cite it as someone else's
     // DW_AT_abstract_origin attribute.
-    case DW_AT_inline:      inline_  = true; break;
+    case DW_AT_inline:
+      inline_ = true;
+      break;
 
     default:
       break;
   }
 }
 
-DIEHandler* DwarfCUToModule::FuncHandler::FindChildHandler(
-    uint64_t offset,
-    enum DwarfTag tag) {
+DIEHandler* DwarfCUToModule::FuncHandler::FindChildHandler(uint64_t offset,
+                                                           enum DwarfTag tag) {
   switch (tag) {
     case DW_TAG_inlined_subroutine:
       if (handle_inline_)
@@ -868,10 +880,8 @@ void DwarfCUToModule::FuncHandler::Finish() {
     // Make high_pc_ an address, if it isn't already.
     if (high_pc_form_ != DW_FORM_addr &&
         high_pc_form_ != DW_FORM_GNU_addr_index &&
-        high_pc_form_ != DW_FORM_addrx &&
-        high_pc_form_ != DW_FORM_addrx1 &&
-        high_pc_form_ != DW_FORM_addrx2 &&
-        high_pc_form_ != DW_FORM_addrx3 &&
+        high_pc_form_ != DW_FORM_addrx && high_pc_form_ != DW_FORM_addrx1 &&
+        high_pc_form_ != DW_FORM_addrx2 && high_pc_form_ != DW_FORM_addrx3 &&
         high_pc_form_ != DW_FORM_addrx4) {
       high_pc_ += low_pc_;
     }
@@ -883,8 +893,8 @@ void DwarfCUToModule::FuncHandler::Finish() {
     if (ranges_handler) {
       RangeListReader::CURangesInfo cu_info;
       if (cu_context_->AssembleRangeListInfo(&cu_info)) {
-        if (!ranges_handler->ReadRanges(ranges_form_, ranges_data_,
-                                        &cu_info, &ranges)) {
+        if (!ranges_handler->ReadRanges(ranges_form_, ranges_data_, &cu_info,
+                                        &ranges)) {
           ranges.clear();
           cu_context_->reporter->MalformedRangeList(ranges_data_);
         }
@@ -985,18 +995,23 @@ void DwarfCUToModule::WarningReporter::CUHeading() {
 void DwarfCUToModule::WarningReporter::UnknownSpecification(uint64_t offset,
                                                             uint64_t target) {
   CUHeading();
-  fprintf(stderr, "%s: the DIE at offset 0x%" PRIx64 " has a "
-          "DW_AT_specification attribute referring to the DIE at offset 0x%"
-          PRIx64 ", which was not marked as a declaration\n",
-          filename_.c_str(), offset, target);
+  fprintf(
+      stderr,
+      "%s: the DIE at offset 0x%" PRIx64
+      " has a "
+      "DW_AT_specification attribute referring to the DIE at offset 0x%" PRIx64
+      ", which was not marked as a declaration\n",
+      filename_.c_str(), offset, target);
 }
 
 void DwarfCUToModule::WarningReporter::UnknownAbstractOrigin(uint64_t offset,
                                                              uint64_t target) {
   CUHeading();
-  fprintf(stderr, "%s: the DIE at offset 0x%" PRIx64 " has a "
-          "DW_AT_abstract_origin attribute referring to the DIE at offset 0x%"
-          PRIx64 ", which was not marked as an inline\n",
+  fprintf(stderr,
+          "%s: the DIE at offset 0x%" PRIx64
+          " has a "
+          "DW_AT_abstract_origin attribute referring to the DIE at offset "
+          "0x%" PRIx64 ", which was not marked as an inline\n",
           filename_.c_str(), offset, target);
 }
 
@@ -1008,7 +1023,8 @@ void DwarfCUToModule::WarningReporter::MissingSection(const string& name) {
 
 void DwarfCUToModule::WarningReporter::BadLineInfoOffset(uint64_t offset) {
   CUHeading();
-  fprintf(stderr, "%s: warning: line number data offset beyond end"
+  fprintf(stderr,
+          "%s: warning: line number data offset beyond end"
           " of '.debug_line' section\n",
           filename_.c_str());
 }
@@ -1037,8 +1053,8 @@ void DwarfCUToModule::WarningReporter::UncoveredLine(const Module::Line& line) {
     return;
   UncoveredHeading();
   fprintf(stderr, "    line%s: %s:%d at 0x%" PRIx64 "\n",
-          (line.size == 0 ? " (zero-length)" : ""),
-          line.file->name.c_str(), line.number, line.address);
+          (line.size == 0 ? " (zero-length)" : ""), line.file->name.c_str(),
+          line.number, line.address);
 }
 
 void DwarfCUToModule::WarningReporter::UnnamedFunction(uint64_t offset) {
@@ -1049,30 +1065,39 @@ void DwarfCUToModule::WarningReporter::UnnamedFunction(uint64_t offset) {
 
 void DwarfCUToModule::WarningReporter::DemangleError(const string& input) {
   CUHeading();
-  fprintf(stderr, "%s: warning: failed to demangle %s\n",
-          filename_.c_str(), input.c_str());
+  fprintf(stderr, "%s: warning: failed to demangle %s\n", filename_.c_str(),
+          input.c_str());
 }
 
 void DwarfCUToModule::WarningReporter::UnhandledInterCUReference(
-    uint64_t offset, uint64_t target) {
+    uint64_t offset,
+    uint64_t target) {
   CUHeading();
-  fprintf(stderr, "%s: warning: the DIE at offset 0x%" PRIx64 " has a "
-                  "DW_FORM_ref_addr attribute with an inter-CU reference to "
-                  "0x%" PRIx64 ", but inter-CU reference handling is turned "
-                  " off.\n", filename_.c_str(), offset, target);
+  fprintf(stderr,
+          "%s: warning: the DIE at offset 0x%" PRIx64
+          " has a "
+          "DW_FORM_ref_addr attribute with an inter-CU reference to "
+          "0x%" PRIx64
+          ", but inter-CU reference handling is turned "
+          " off.\n",
+          filename_.c_str(), offset, target);
 }
 
 void DwarfCUToModule::WarningReporter::MalformedRangeList(uint64_t offset) {
   CUHeading();
-  fprintf(stderr, "%s: warning: the range list at offset 0x%" PRIx64 " falls "
-                  " out of the .debug_ranges section.\n",
-                  filename_.c_str(), offset);
+  fprintf(stderr,
+          "%s: warning: the range list at offset 0x%" PRIx64
+          " falls "
+          " out of the .debug_ranges section.\n",
+          filename_.c_str(), offset);
 }
 
 void DwarfCUToModule::WarningReporter::MissingRanges() {
   CUHeading();
-  fprintf(stderr, "%s: warning: A DW_AT_ranges attribute was encountered but "
-                  "the .debug_ranges section is missing.\n", filename_.c_str());
+  fprintf(stderr,
+          "%s: warning: A DW_AT_ranges attribute was encountered but "
+          "the .debug_ranges section is missing.\n",
+          filename_.c_str());
 }
 
 DwarfCUToModule::DwarfCUToModule(FileContext* file_context,
@@ -1095,14 +1120,13 @@ DwarfCUToModule::DwarfCUToModule(FileContext* file_context,
       has_source_line_info_(has_source_line_info),
       source_line_offset_(source_line_offset) {}
 
-DwarfCUToModule::~DwarfCUToModule() {
-}
+DwarfCUToModule::~DwarfCUToModule() {}
 
 void DwarfCUToModule::ProcessAttributeSigned(enum DwarfAttribute attr,
                                              enum DwarfForm form,
                                              int64_t data) {
   switch (attr) {
-    case DW_AT_language: // source language of this CU
+    case DW_AT_language:  // source language of this CU
       SetLanguage(static_cast<DwarfLanguage>(data));
       break;
     default:
@@ -1114,18 +1138,18 @@ void DwarfCUToModule::ProcessAttributeUnsigned(enum DwarfAttribute attr,
                                                enum DwarfForm form,
                                                uint64_t data) {
   switch (attr) {
-    case DW_AT_stmt_list: // Line number information.
+    case DW_AT_stmt_list:  // Line number information.
       has_source_line_info_ = true;
       source_line_offset_ = data;
       break;
-    case DW_AT_language: // source language of this CU
+    case DW_AT_language:  // source language of this CU
       SetLanguage(static_cast<DwarfLanguage>(data));
       break;
     case DW_AT_low_pc:
-      cu_context_->low_pc  = data;
+      cu_context_->low_pc = data;
       break;
     case DW_AT_high_pc:
-      cu_context_->high_pc  = data;
+      cu_context_->high_pc = data;
       break;
     case DW_AT_ranges:
       cu_context_->ranges_data = data;
@@ -1148,7 +1172,7 @@ void DwarfCUToModule::ProcessAttributeUnsigned(enum DwarfAttribute attr,
 
 void DwarfCUToModule::ProcessAttributeString(enum DwarfAttribute attr,
                                              enum DwarfForm form,
-                                            const string& data) {
+                                             const string& data) {
   switch (attr) {
     case DW_AT_name:
       cu_context_->reporter->SetCUName(data);
@@ -1165,9 +1189,8 @@ bool DwarfCUToModule::EndAttributes() {
   return true;
 }
 
-DIEHandler* DwarfCUToModule::FindChildHandler(
-    uint64_t offset,
-    enum DwarfTag tag) {
+DIEHandler* DwarfCUToModule::FindChildHandler(uint64_t offset,
+                                              enum DwarfTag tag) {
   switch (tag) {
     case DW_TAG_subprogram:
       return new FuncHandler(cu_context_.get(), child_context_.get(), offset,
@@ -1228,10 +1251,9 @@ void DwarfCUToModule::SetLanguage(DwarfLanguage language) {
 }
 
 void DwarfCUToModule::ReadSourceLines(uint64_t offset) {
-  const SectionMap& section_map
-      = cu_context_->file_context->section_map();
-  SectionMap::const_iterator map_entry
-      = GetSectionByName(section_map, ".debug_line");
+  const SectionMap& section_map = cu_context_->file_context->section_map();
+  SectionMap::const_iterator map_entry =
+      GetSectionByName(section_map, ".debug_line");
   if (map_entry == section_map.end()) {
     cu_context_->reporter->MissingSection(".debug_line");
     return;
@@ -1260,21 +1282,19 @@ void DwarfCUToModule::ReadSourceLines(uint64_t offset) {
     line_string_section_length = map_entry->second.second;
   }
   line_reader_->ReadProgram(
-      line_section_start, line_section_length,
-      string_section_start, string_section_length,
-      line_string_section_start, line_string_section_length,
-      cu_context_->file_context->module_, &lines_, &files_);
+      line_section_start, line_section_length, string_section_start,
+      string_section_length, line_string_section_start,
+      line_string_section_length, cu_context_->file_context->module_, &lines_,
+      &files_);
 }
 
 namespace {
 class FunctionRange {
  public:
-  FunctionRange(const Module::Range& range, Module::Function* function) :
-      address(range.address), size(range.size), function(function) { }
+  FunctionRange(const Module::Range& range, Module::Function* function)
+      : address(range.address), size(range.size), function(function) {}
 
-  void AddLine(Module::Line& line) {
-    function->lines.push_back(line);
-  }
+  void AddLine(Module::Line& line) { function->lines.push_back(line); }
 
   Module::Address address;
   Module::Address size;
@@ -1288,26 +1308,22 @@ class FunctionRange {
 static void FillSortedFunctionRanges(vector<FunctionRange>& dest_ranges,
                                      vector<Module::Function*>* functions) {
   for (vector<Module::Function*>::const_iterator func_it = functions->cbegin();
-       func_it != functions->cend();
-       func_it++)
-  {
+       func_it != functions->cend(); func_it++) {
     Module::Function* func = *func_it;
     vector<Module::Range>& ranges = func->ranges;
     for (vector<Module::Range>::const_iterator ranges_it = ranges.cbegin();
-         ranges_it != ranges.cend();
-         ++ranges_it) {
+         ranges_it != ranges.cend(); ++ranges_it) {
       FunctionRange range(*ranges_it, func);
       if (range.size != 0) {
-          dest_ranges.push_back(range);
+        dest_ranges.push_back(range);
       }
     }
   }
 
   sort(dest_ranges.begin(), dest_ranges.end(),
-    [](const FunctionRange& fr1, const FunctionRange& fr2) {
-      return fr1.address < fr2.address;
-    }
-  );
+       [](const FunctionRange& fr1, const FunctionRange& fr2) {
+         return fr1.address < fr2.address;
+       });
 }
 
 // Return true if ADDRESS falls within the range of ITEM.
@@ -1318,7 +1334,7 @@ inline bool within(const T& item, Module::Address address) {
   // start of ITEM, or if it falls after ITEM's end.
   return address - item.address < item.size;
 }
-}
+}  // namespace
 
 void DwarfCUToModule::AssignLinesToFunctions() {
   vector<Module::Function*>* functions = &cu_context_->functions;
@@ -1464,10 +1480,9 @@ void DwarfCUToModule::AssignLinesToFunctions() {
         // some of the line we're about to skip, and it ends at the
         // start of the next function, then assume this is what
         // happened, and don't warn.
-        if (line != last_line_cited
-            && !(range
-                 && line == last_line_used
-                 && range->address - line->address == line->size)) {
+        if (line != last_line_cited &&
+            !(range && line == last_line_used &&
+              range->address - line->address == line->size)) {
           reporter->UncoveredLine(*line);
           last_line_cited = line;
         }
@@ -1505,14 +1520,13 @@ void DwarfCUToModule::AssignLinesToFunctions() {
     // then we could go around more than once. We don't worry too much
     // about what result we produce in that case, just as long as we don't
     // hang or crash.
-    while (range_it != sorted_ranges.end()
-           && next_transition >= range_it->address
-           && !within(*range_it, next_transition))
+    while (range_it != sorted_ranges.end() &&
+           next_transition >= range_it->address &&
+           !within(*range_it, next_transition))
       range_it++;
     range = (range_it != sorted_ranges.end()) ? &(*range_it) : NULL;
-    while (line_it != lines_.end()
-           && next_transition >= line_it->address
-           && !within(*line_it, next_transition))
+    while (line_it != lines_.end() && next_transition >= line_it->address &&
+           !within(*line_it, next_transition))
       line_it++;
     line = (line_it != lines_.end()) ? &*line_it : NULL;
 
@@ -1582,8 +1596,7 @@ bool DwarfCUToModule::StartCompilationUnit(uint64_t offset,
 bool DwarfCUToModule::StartRootDIE(uint64_t offset, enum DwarfTag tag) {
   // We don't deal with partial compilation units (the only other tag
   // likely to be used for root DIE).
-  return (tag == DW_TAG_compile_unit
-	  || tag == DW_TAG_skeleton_unit);
+  return (tag == DW_TAG_compile_unit || tag == DW_TAG_skeleton_unit);
 }
 
-} // namespace google_breakpad
+}  // namespace google_breakpad

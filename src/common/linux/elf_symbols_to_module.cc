@@ -49,7 +49,7 @@
 namespace google_breakpad {
 
 class ELFSymbolIterator {
-public:
+ public:
   // The contents of an ELF symbol, adjusted for the host's endianness,
   // word size, and so on. Corresponds to the data in Elf32_Sym / Elf64_Sym.
   struct Symbol {
@@ -76,9 +76,10 @@ public:
   // otherwise. Assume each symbol has a 'value' field whose size is
   // VALUE_SIZE.
   //
-  ELFSymbolIterator(const ByteBuffer* buffer, bool big_endian,
+  ELFSymbolIterator(const ByteBuffer* buffer,
+                    bool big_endian,
                     size_t value_size)
-    : value_size_(value_size), cursor_(buffer, big_endian) {
+      : value_size_(value_size), cursor_(buffer, big_endian) {
     // Actually, weird sizes could be handled just fine, but they're
     // probably mistakes --- expressed in bits, say.
     assert(value_size == 4 || value_size == 8);
@@ -88,7 +89,11 @@ public:
 
   // Move to the next symbol. This function's behavior is undefined if
   // at_end() is true when it is called.
-  ELFSymbolIterator& operator++() { Fetch(); symbol_.index++; return *this; }
+  ELFSymbolIterator& operator++() {
+    Fetch();
+    symbol_.index++;
+    return *this;
+  }
 
   // Dereferencing this iterator produces a reference to an Symbol structure
   // that holds the current symbol's values. The symbol is owned by this
@@ -96,29 +101,27 @@ public:
   const Symbol& operator*() const { return symbol_; }
   const Symbol* operator->() const { return &symbol_; }
 
-private:
+ private:
   // Read the symbol at cursor_, and set symbol_ appropriately.
   void Fetch() {
     // Elf32_Sym and Elf64_Sym have different layouts.
     unsigned char other;
     if (value_size_ == 4) {
       // Elf32_Sym
-      cursor_
-        .Read(4, false, &symbol_.name_offset)
-        .Read(4, false, &symbol_.value)
-        .Read(4, false, &symbol_.size)
-        .Read(1, false, &symbol_.info)
-        .Read(1, false, &other)
-        .Read(2, false, &symbol_.shndx);
+      cursor_.Read(4, false, &symbol_.name_offset)
+          .Read(4, false, &symbol_.value)
+          .Read(4, false, &symbol_.size)
+          .Read(1, false, &symbol_.info)
+          .Read(1, false, &other)
+          .Read(2, false, &symbol_.shndx);
     } else {
       // Elf64_Sym
-      cursor_
-        .Read(4, false, &symbol_.name_offset)
-        .Read(1, false, &symbol_.info)
-        .Read(1, false, &other)
-        .Read(2, false, &symbol_.shndx)
-        .Read(8, false, &symbol_.value)
-        .Read(8, false, &symbol_.size);
+      cursor_.Read(4, false, &symbol_.name_offset)
+          .Read(1, false, &symbol_.info)
+          .Read(1, false, &other)
+          .Read(2, false, &symbol_.shndx)
+          .Read(8, false, &symbol_.value)
+          .Read(8, false, &symbol_.size);
     }
     symbol_.at_end = !cursor_;
   }
@@ -134,7 +137,7 @@ private:
 };
 
 const char* SymbolString(ptrdiff_t offset, ByteBuffer& strings) {
-  if (offset < 0 || (size_t) offset >= strings.Size()) {
+  if (offset < 0 || (size_t)offset >= strings.Size()) {
     // Return the null string.
     offset = 0;
   }
@@ -152,29 +155,34 @@ bool ELFSymbolsToModule(const uint8_t* symtab_section,
   // Ensure that the string section is null-terminated.
   if (string_section[string_size - 1] != '\0') {
     const void* null_terminator = memrchr(string_section, '\0', string_size);
-    string_size = reinterpret_cast<const uint8_t*>(null_terminator)
-      - string_section;
+    string_size =
+        reinterpret_cast<const uint8_t*>(null_terminator) - string_section;
   }
   ByteBuffer strings(string_section, string_size);
 
   // The iterator walking the symbol table.
   ELFSymbolIterator iterator(&symbols, big_endian, value_size);
 
-  while(!iterator->at_end) {
+  while (!iterator->at_end) {
     if (ELF32_ST_TYPE(iterator->info) == STT_FUNC &&
         iterator->shndx != SHN_UNDEF) {
       auto ext = std::make_unique<Module::Extern>(iterator->value);
       ext->name = SymbolString(iterator->name_offset, strings);
 #if !defined(__ANDROID__)  // Android NDK doesn't provide abi::__cxa_demangle.
-      int status = 0;
+      /*int status = 0;
       char* demangled =
           abi::__cxa_demangle(ext->name.c_str(), NULL, NULL, &status);
       if (demangled) {
         if (status == 0)
           ext->name = demangled;
         free(demangled);
-      }
+      }*/
 #endif
+      module->AddExtern(std::move(ext));
+    } else if (ELF32_ST_TYPE(iterator->info) == STT_OBJECT &&
+               iterator->shndx != SHN_UNDEF) {
+      auto ext = std::make_unique<Module::Extern>(iterator->value);
+      ext->name = SymbolString(iterator->name_offset, strings);
       module->AddExtern(std::move(ext));
     }
     ++iterator;

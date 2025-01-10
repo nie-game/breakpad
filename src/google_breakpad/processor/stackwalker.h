@@ -36,7 +36,6 @@
 //
 // Author: Mark Mentovai
 
-
 #ifndef GOOGLE_BREAKPAD_PROCESSOR_STACKWALKER_H__
 #define GOOGLE_BREAKPAD_PROCESSOR_STACKWALKER_H__
 
@@ -83,14 +82,12 @@ class Stackwalker {
   // Returns a new concrete subclass suitable for the CPU that a stack was
   // generated on, according to the CPU type indicated by the context
   // argument.  If no suitable concrete subclass exists, returns NULL.
-  static Stackwalker* StackwalkerForCPU(
-     const SystemInfo* system_info,
-     DumpContext* context,
-     MemoryRegion* memory,
-     const CodeModules* modules,
-     const CodeModules* unloaded_modules,
-     StackFrameSymbolizer* resolver_helper);
-
+  static Stackwalker* StackwalkerForCPU(const SystemInfo* system_info,
+                                        DumpContext* context,
+                                        MemoryRegion* memory,
+                                        const CodeModules* modules,
+                                        const CodeModules* unloaded_modules,
+                                        StackFrameSymbolizer* resolver_helper);
 
   static void set_max_frames(uint32_t max_frames) {
     max_frames_ = max_frames;
@@ -101,6 +98,7 @@ class Stackwalker {
   static void set_max_frames_scanned(uint32_t max_frames_scanned) {
     max_frames_scanned_ = max_frames_scanned;
   }
+  bool look(StackFrame& frame) const;
 
  protected:
   // system_info identifies the operating system, NULL or empty if unknown.
@@ -139,16 +137,15 @@ class Stackwalker {
   // for a return address.
   static const int kRASearchWords;
 
-  template<typename InstructionType>
+  template <typename InstructionType>
   bool ScanForReturnAddress(InstructionType location_start,
                             InstructionType* location_found,
                             InstructionType* ip_found,
                             bool is_context_frame) {
     // When searching for the caller of the context frame,
     // allow the scanner to look farther down the stack.
-    const int search_words = is_context_frame ?
-      kRASearchWords * 4 :
-      kRASearchWords;
+    const int search_words =
+        is_context_frame ? kRASearchWords * 4 : kRASearchWords;
 
     return ScanForReturnAddress(location_start, location_found, ip_found,
                                 search_words);
@@ -163,7 +160,7 @@ class Stackwalker {
   // When returning true, sets location_found to the address at which
   // the value was found, and ip_found to the value contained at that
   // location in memory.
-  template<typename InstructionType>
+  template <typename InstructionType>
   bool ScanForReturnAddress(InstructionType location_start,
                             InstructionType* location_found,
                             InstructionType* ip_found,
@@ -179,7 +176,7 @@ class Stackwalker {
       // caller was a no return function, this might point past the end of the
       // function. Subtract one from the instruction pointer so it points into
       // the call instruction instead.
-      if (modules_ && modules_->GetModuleForAddress(ip  - 1) &&
+      if (modules_ && modules_->GetModuleForAddress(ip - 1) &&
           InstructionAddressSeemsValid(ip - 1)) {
         *ip_found = ip;
         *location_found = location;
@@ -255,6 +252,5 @@ class Stackwalker {
 };
 
 }  // namespace google_breakpad
-
 
 #endif  // GOOGLE_BREAKPAD_PROCESSOR_STACKWALKER_H__

@@ -38,30 +38,32 @@
 #include "processor/address_map.h"
 
 #include <assert.h>
+#include <print>
 
 #include "processor/logging.h"
 
 namespace google_breakpad {
 
-template<typename AddressType, typename EntryType>
+template <typename AddressType, typename EntryType>
 bool AddressMap<AddressType, EntryType>::Store(const AddressType& address,
                                                const EntryType& entry) {
   // Ensure that the specified address doesn't conflict with something already
   // in the map.
-  if (map_.find(address) != map_.end()) {
-    BPLOG(INFO) << "Store failed, address " << HexString(address) <<
-                   " is already present";
+  /*if (map_.find(address) != map_.end()) {
+    BPLOG(INFO) << "Store failed, address " << HexString(address)
+                << " is already present";
     return false;
-  }
+  }*/
 
   map_.insert(MapValue(address, entry));
   return true;
 }
 
-template<typename AddressType, typename EntryType>
+template <typename AddressType, typename EntryType>
 bool AddressMap<AddressType, EntryType>::Retrieve(
     const AddressType& address,
-    EntryType* entry, AddressType* entry_address) const {
+    EntryType* entry,
+    AddressType* entry_address) const {
   BPLOG_IF(ERROR, !entry) << "AddressMap::Retrieve requires |entry|";
   assert(entry);
 
@@ -82,7 +84,36 @@ bool AddressMap<AddressType, EntryType>::Retrieve(
   return true;
 }
 
-template<typename AddressType, typename EntryType>
+template <typename AddressType, typename EntryType>
+bool AddressMap<AddressType, EntryType>::Retrieve(
+    const AddressType& address,
+    std::vector<EntryType>* entry,
+    std::vector<AddressType>* entry_address) const {
+  BPLOG_IF(ERROR, !entry) << "AddressMap::Retrieve requires |entry|";
+  assert(entry);
+
+  // upper_bound gives the first element whose key is greater than address,
+  // but we want the first element whose key is less than or equal to address.
+  // Decrement the iterator to get there, but not if the upper_bound already
+  // points to the beginning of the map - in that case, address is lower than
+  // the lowest stored key, so return false.
+  MapConstIterator iterator = map_.upper_bound(address);
+  if (iterator == map_.begin())
+    return false;
+  --iterator;
+
+  do {
+    entry->push_back(iterator->second);
+    if (entry_address)
+      entry_address->push_back(iterator->first);
+    iterator--;
+  }while ((iterator->first == entry_address->front()) && (iterator != map_.begin()));
+  if(entry_address->size()>=2)std::println("FMU");
+
+  return true;
+}
+
+template <typename AddressType, typename EntryType>
 void AddressMap<AddressType, EntryType>::Clear() {
   map_.clear();
 }

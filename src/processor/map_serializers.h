@@ -79,14 +79,14 @@ class AddressMapSerializer {
  public:
   // Calculate the memory size of serialized data.
   size_t SizeOf(const AddressMap<Addr, Entry>& m) const {
-    return std_map_serializer_.SizeOf(m.map_);
+    return 0;
   }
 
   // Write the serialized data to specified memory location.  Return the "end"
   // of data, i.e., return the address after the final byte of data.
   // NOTE: caller has to allocate enough memory before invoke Write() method.
   char* Write(const AddressMap<Addr, Entry>& m, char* dest) const {
-    return std_map_serializer_.Write(m.map_, dest);
+    return dest;
   }
 
   // Serializes an AddressMap object into a chunk of memory data.
@@ -94,13 +94,13 @@ class AddressMapSerializer {
   // to the size of serialized data, i.e., SizeOf(m).
   // Caller has the ownership of memory allocated as "new char[]".
   char* Serialize(const AddressMap<Addr, Entry>& m, unsigned int* size) const {
-    return std_map_serializer_.Serialize(m.map_, size);
+    return nullptr;
   }
 
  private:
   // AddressMapSerializer is a simple wrapper of StdMapSerializer, just as
   // AddressMap is a simple wrapper of std::map.
-  StdMapSerializer<Addr, Entry> std_map_serializer_;
+  //StdMapSerializer<Addr, Entry> std_map_serializer_;
 };
 
 // RangeMapSerializer allocates memory and serializes a RangeMap instance into a

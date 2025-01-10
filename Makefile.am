@@ -30,9 +30,10 @@
 
 
 # This allows #includes to be relative to src/
-AM_CPPFLAGS = -I$(top_srcdir)/src
-AM_CFLAGS =
-AM_CXXFLAGS =
+AM_CPPFLAGS = -I$(top_srcdir)/src -std=c++26
+AM_CFLAGS = -std=c++26
+AM_CXXFLAGS = -std=c++26
+CXXFLAGS = -std=c++26
 
 if ANDROID_HOST
 # This allows using fixed NDK headers when building for Android.
@@ -1418,7 +1419,7 @@ src_common_dwarf_dwarf2reader_splitfunctions_unittest_LDADD = \
 
 src_processor_minidump_dump_SOURCES = \
 	src/processor/minidump_dump.cc
-src_processor_minidump_dump_LDADD = \
+src_processor_minidump_dump_LDADD = -lzstd \
 	src/common/path_helper.o \
 	src/processor/basic_code_modules.o \
 	src/processor/convert_old_arm64_context.o \
@@ -1431,7 +1432,7 @@ src_processor_minidump_dump_LDADD = \
 
 src_processor_microdump_stackwalk_SOURCES = \
 	src/processor/microdump_stackwalk.cc
-src_processor_microdump_stackwalk_LDADD = \
+src_processor_microdump_stackwalk_LDADD = -lzstd \
 	src/common/path_helper.o \
 	src/processor/basic_code_modules.o \
 	src/processor/basic_source_line_resolver.o \
@@ -1472,9 +1473,12 @@ src_processor_microdump_stackwalk_LDADD += \
 	src/processor/disassembler_objdump.o
 endif
 
+src_processor_minidump_stackwalk_CXXFLAGS = -std=c++26
+src_processor_minidump_stackwalk_CPPFLAGS = -std=c++26
+src_processor_minidump_stackwalk_CFLAGS = -std=c++26
 src_processor_minidump_stackwalk_SOURCES = \
 	src/processor/minidump_stackwalk.cc
-src_processor_minidump_stackwalk_LDADD = \
+src_processor_minidump_stackwalk_LDADD = -lzstd \
 	src/common/path_helper.o \
 	src/processor/basic_code_modules.o \
 	src/processor/basic_source_line_resolver.o \

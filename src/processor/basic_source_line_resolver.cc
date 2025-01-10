@@ -38,8 +38,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <limits>
 #include <map>
@@ -108,14 +108,13 @@ static const char* kWhitespace = " \r\n";
 static const int kMaxErrorsPrinted = 5;
 static const int kMaxErrorsBeforeBailing = 100;
 
-BasicSourceLineResolver::BasicSourceLineResolver() :
-    SourceLineResolverBase(new BasicModuleFactory) { }
+BasicSourceLineResolver::BasicSourceLineResolver()
+    : SourceLineResolverBase(new BasicModuleFactory) {}
 
 // static
-void BasicSourceLineResolver::Module::LogParseError(
-   const string& message,
-   int line_number,
-   int* num_errors) {
+void BasicSourceLineResolver::Module::LogParseError(const string& message,
+                                                    int line_number,
+                                                    int* num_errors) {
   if (++(*num_errors) <= kMaxErrorsPrinted) {
     if (line_number > 0) {
       BPLOG(ERROR) << "Line " << line_number << ": " << message;
@@ -162,9 +161,8 @@ bool BasicSourceLineResolver::Module::LoadMapFromMemory(
   }
   if (has_null_terminator_in_the_middle) {
     LogParseError(
-       "Null terminator is not expected in the middle of the symbol data",
-       line_number,
-       &num_errors);
+        "Null terminator is not expected in the middle of the symbol data",
+        line_number, &num_errors);
   }
 
   char* buffer;
@@ -222,8 +220,8 @@ bool BasicSourceLineResolver::Module::LoadMapFromMemory(
       }
     } else {
       if (!cur_func.get()) {
-        LogParseError("Found source line data without a function",
-                       line_number, &num_errors);
+        LogParseError("Found source line data without a function", line_number,
+                      &num_errors);
       } else {
         Line* line = ParseLine(buffer);
         if (!line) {
@@ -262,7 +260,7 @@ void BasicSourceLineResolver::Module::ConstructInlineFrames(
     } else {
       new_frame->function_name = "<name omitted>";
     }
-    
+
     // Store call site file and line in current frame, which will be updated
     // later.
     new_frame->source_line = in->get()->call_site_line;
@@ -313,10 +311,10 @@ void BasicSourceLineResolver::Module::LookupAddress(
   // need to check that address indeed falls within the function we
   // find; do the range comparison in an overflow-friendly way.
   linked_ptr<Function> func;
-  linked_ptr<PublicSymbol> public_symbol;
+  std::vector<linked_ptr<PublicSymbol>> public_symbol;
   MemAddr function_base;
   MemAddr function_size;
-  MemAddr public_address;
+  std::vector<MemAddr> public_address;
   if (functions_.RetrieveNearestRange(address, &func, &function_base,
                                       NULL /* delta */, &function_size) &&
       address >= function_base && address - function_base < function_size) {
@@ -340,12 +338,20 @@ void BasicSourceLineResolver::Module::LookupAddress(
     if (inlined_frames) {
       ConstructInlineFrames(frame, address, func->inlines, inlined_frames);
     }
-  } else if (public_symbols_.Retrieve(address,
-                                      &public_symbol, &public_address) &&
-             (!func.get() || public_address > function_base)) {
-    frame->function_name = public_symbol->name;
-    frame->function_base = frame->module->base_address() + public_address;
-    frame->is_multiple = public_symbol->is_multiple;
+    if (public_symbols_.Retrieve(address, &public_symbol, &public_address)) {
+      for (auto& ps : public_symbol)
+    if(frame->function_name!=ps->name)
+        frame->function_name += (frame->function_name.size()?"**\n":"")+ps->name;
+    }
+  } else if (public_symbols_.Retrieve(address, &public_symbol,
+                                      &public_address) &&
+             (!func.get() || public_address.front() >= function_base)) {
+    for (auto& ps : public_symbol)
+    if(frame->function_name!=ps->name)
+      frame->function_name += (frame->function_name.size()?"**\n":"")+ps->name;
+    frame->function_base =
+        frame->module->base_address() + public_address.front();
+    frame->is_multiple = public_symbol.front()->is_multiple;
   }
 }
 
@@ -362,9 +368,9 @@ WindowsFrameInfo* BasicSourceLineResolver::Module::FindWindowsFrameInfo(
   // corresponding to the FPO_DATA struct. See stackwalker_x86.cc.
   linked_ptr<WindowsFrameInfo> frame_info;
   if ((windows_frame_info_[WindowsFrameInfo::STACK_INFO_FRAME_DATA]
-       .RetrieveRange(address, &frame_info))
-      || (windows_frame_info_[WindowsFrameInfo::STACK_INFO_FPO]
-          .RetrieveRange(address, &frame_info))) {
+           .RetrieveRange(address, &frame_info)) ||
+      (windows_frame_info_[WindowsFrameInfo::STACK_INFO_FPO].RetrieveRange(
+          address, &frame_info))) {
     result->CopyFrom(*frame_info.get());
     return result.release();
   }
@@ -421,7 +427,7 @@ CFIFrameInfo* BasicSourceLineResolver::Module::FindCFIFrameInfo(
 
   // Find the first delta rule that falls within the initial rule's range.
   map<MemAddr, string>::const_iterator delta =
-    cfi_delta_rules_.lower_bound(initial_base);
+      cfi_delta_rules_.lower_bound(initial_base);
 
   // Apply delta rules up to and including the frame's address.
   while (delta != cfi_delta_rules_.end() && delta->first <= address) {
@@ -443,7 +449,7 @@ bool BasicSourceLineResolver::Module::ParseFile(char* file_line) {
 }
 
 bool BasicSourceLineResolver::Module::ParseInlineOrigin(
-  char* inline_origin_line) {
+    char* inline_origin_line) {
   bool has_file_id;
   long origin_id;
   long source_file_id;
@@ -452,8 +458,7 @@ bool BasicSourceLineResolver::Module::ParseInlineOrigin(
                                            &origin_id, &source_file_id,
                                            &origin_name)) {
     inline_origins_.insert(make_pair(
-        origin_id,
-        new InlineOrigin(has_file_id, source_file_id, origin_name)));
+        origin_id, new InlineOrigin(has_file_id, source_file_id, origin_name)));
     return true;
   }
   return false;
@@ -523,9 +528,8 @@ bool BasicSourceLineResolver::Module::ParsePublicSymbol(char* public_line) {
       return true;
     }
 
-    linked_ptr<PublicSymbol> symbol(new PublicSymbol(name, address,
-                                                     stack_param_size,
-                                                     is_multiple));
+    linked_ptr<PublicSymbol> symbol(
+        new PublicSymbol(name, address, stack_param_size, is_multiple));
     return public_symbols_.Store(address, symbol);
   }
   return false;
@@ -548,11 +552,9 @@ bool BasicSourceLineResolver::Module::ParseStackInfo(char* stack_info_line) {
   if (strcmp(platform, "WIN") == 0) {
     int type = 0;
     uint64_t rva, code_size;
-    linked_ptr<WindowsFrameInfo>
-      stack_frame_info(WindowsFrameInfo::ParseFromString(stack_info_line,
-                                                         type,
-                                                         rva,
-                                                         code_size));
+    linked_ptr<WindowsFrameInfo> stack_frame_info(
+        WindowsFrameInfo::ParseFromString(stack_info_line, type, rva,
+                                          code_size));
     if (stack_frame_info == NULL)
       return false;
 
@@ -587,8 +589,7 @@ bool BasicSourceLineResolver::Module::ParseStackInfo(char* stack_info_line) {
   }
 }
 
-bool BasicSourceLineResolver::Module::ParseCFIFrameInfo(
-    char* stack_info_line) {
+bool BasicSourceLineResolver::Module::ParseCFIFrameInfo(char* stack_info_line) {
   char* cursor;
 
   // Is this an INIT record or a delta record?
@@ -599,16 +600,19 @@ bool BasicSourceLineResolver::Module::ParseCFIFrameInfo(
   if (strcmp(init_or_address, "INIT") == 0) {
     // This record has the form "STACK INIT <address> <size> <rules...>".
     char* address_field = strtok_r(NULL, " \r\n", &cursor);
-    if (!address_field) return false;
+    if (!address_field)
+      return false;
 
     char* size_field = strtok_r(NULL, " \r\n", &cursor);
-    if (!size_field) return false;
+    if (!size_field)
+      return false;
 
     char* initial_rules = strtok_r(NULL, "\r\n", &cursor);
-    if (!initial_rules) return false;
+    if (!initial_rules)
+      return false;
 
     MemAddr address = strtoul(address_field, NULL, 16);
-    MemAddr size    = strtoul(size_field,    NULL, 16);
+    MemAddr size = strtoul(size_field, NULL, 16);
     cfi_initial_rules_.StoreRange(address, size, initial_rules);
     return true;
   }
@@ -616,7 +620,8 @@ bool BasicSourceLineResolver::Module::ParseCFIFrameInfo(
   // This record has the form "STACK <address> <rules...>".
   char* address_field = init_or_address;
   char* delta_rules = strtok_r(NULL, "\r\n", &cursor);
-  if (!delta_rules) return false;
+  if (!delta_rules)
+    return false;
   MemAddr address = strtoul(address_field, NULL, 16);
   cfi_delta_rules_[address] = delta_rules;
   return true;
@@ -636,7 +641,8 @@ bool BasicSourceLineResolver::Function::AppendInline(linked_ptr<Inline> in) {
 }
 
 // static
-bool SymbolParseHelper::ParseFile(char* file_line, long* index,
+bool SymbolParseHelper::ParseFile(char* file_line,
+                                  long* index,
                                   char** filename) {
   // FILE <id> <filename>
   assert(strncmp(file_line, "FILE ", 5) == 0);
@@ -740,7 +746,7 @@ bool SymbolParseHelper::ParseInline(
   // INLINE <inline_nest_level> <call_site_line> <call_site_file_id> <origin_id>
   // [<address> <size>]+
   assert(strncmp(inline_line, "INLINE ", 7) == 0);
-  inline_line += 7; // skip prefix
+  inline_line += 7;  // skip prefix
 
   vector<char*> tokens;
   // Increase max_tokens if necessary.
@@ -803,9 +809,12 @@ bool SymbolParseHelper::ParseInline(
 }
 
 // static
-bool SymbolParseHelper::ParseFunction(char* function_line, bool* is_multiple,
-                                      uint64_t* address, uint64_t* size,
-                                      long* stack_param_size, char** name) {
+bool SymbolParseHelper::ParseFunction(char* function_line,
+                                      bool* is_multiple,
+                                      uint64_t* address,
+                                      uint64_t* size,
+                                      long* stack_param_size,
+                                      char** name) {
   // FUNC [<multiple>] <address> <size> <stack_param_size> <name>
   assert(strncmp(function_line, "FUNC ", 5) == 0);
   function_line += 5;  // skip prefix
@@ -841,8 +850,10 @@ bool SymbolParseHelper::ParseFunction(char* function_line, bool* is_multiple,
 }
 
 // static
-bool SymbolParseHelper::ParseLine(char* line_line, uint64_t* address,
-                                  uint64_t* size, long* line_number,
+bool SymbolParseHelper::ParseLine(char* line_line,
+                                  uint64_t* address,
+                                  uint64_t* size,
+                                  long* line_number,
                                   long* source_file) {
   // <address> <size> <line number> <source file id>
   vector<char*> tokens;
@@ -851,7 +862,7 @@ bool SymbolParseHelper::ParseLine(char* line_line, uint64_t* address,
   }
 
   char* after_number;
-  *address  = strtoull(tokens[0], &after_number, 16);
+  *address = strtoull(tokens[0], &after_number, 16);
   if (!IsValidAfterNumber(after_number) ||
       *address == std::numeric_limits<unsigned long long>::max()) {
     return false;
@@ -886,7 +897,8 @@ bool SymbolParseHelper::ParseLine(char* line_line, uint64_t* address,
 }
 
 // static
-bool SymbolParseHelper::ParsePublicSymbol(char* public_line, bool* is_multiple,
+bool SymbolParseHelper::ParsePublicSymbol(char* public_line,
+                                          bool* is_multiple,
                                           uint64_t* address,
                                           long* stack_param_size,
                                           char** name) {

@@ -1484,7 +1484,6 @@ Optional Features:
                           is no). This assumes that rustc-demangle is
                           installed in your sysroot, and all headers from it
                           are available in your standard include path
-  --enable-zstd           Enable decompression of ELF sections with zstd
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -6935,7 +6934,7 @@ if test "x$enable_m32" = xyes; then
   CFLAGS="${CFLAGS} -m32"
   CXXFLAGS="${CXXFLAGS} -m32"
 fi
-
+CXXFLAGS="${CXXFLAGS} -std=c++26"
 # Check whether --enable-largefile was given.
 if test ${enable_largefile+y}
 then :
@@ -10507,12 +10506,7 @@ fi
 
 
 # Check whether --enable-zstd was given.
-if test ${enable_zstd+y}
-then :
-  enableval=$enable_zstd;
-else $as_nop
-  enable_zstd=no
-fi
+enable_zstd=yes
 
 if test "x${enable_zstd}" != xno; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ZSTD_decompress in -lzstd" >&5

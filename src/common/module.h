@@ -54,9 +54,9 @@
 
 namespace google_breakpad {
 
+using std::map;
 using std::set;
 using std::vector;
-using std::map;
 
 // A Module represents the contents of a module, and supports methods
 // for adding information produced by parsing STABS or DWARF data
@@ -94,8 +94,8 @@ class Module {
 
   // An address range.
   struct Range {
-    Range(const Address address_input, const Address size_input) :
-        address(address_input), size(size_input) { }
+    Range(const Address address_input, const Address size_input)
+        : address(address_input), size(size_input) {}
 
     Address address;
     Address size;
@@ -103,8 +103,8 @@ class Module {
 
   // A function.
   struct Function {
-    Function(StringView name_input, const Address& address_input) :
-        name(name_input), address(address_input), parameter_size(0) {}
+    Function(StringView name_input, const Address& address_input)
+        : name(name_input), address(address_input), parameter_size(0) {}
 
     // For sorting by address.  (Not style-guide compliant, but it's
     // stupid not to put this in the struct.)
@@ -234,9 +234,9 @@ class Module {
       return x.address < y.address;
     }
 
-    Address address, size;    // The address and size of the line's code.
-    File* file;                // The source file.
-    int number;                // The source line number.
+    Address address, size;  // The address and size of the line's code.
+    File* file;             // The source file.
+    int number;             // The source line number.
   };
 
   // An exported symbol.
@@ -278,7 +278,7 @@ class Module {
   };
 
   struct FunctionCompare {
-    bool operator() (const Function* lhs, const Function* rhs) const {
+    bool operator()(const Function* lhs, const Function* rhs) const {
       if (lhs->address == rhs->address)
         return lhs->name < rhs->name;
       return lhs->address < rhs->address;
@@ -296,14 +296,16 @@ class Module {
     // std::set<std::unique_ptr<Extern>, ExternCompare>::find() to be called
     // with an Extern* and have set use the overloads below.
     using is_transparent = void;
-    bool operator() (const std::unique_ptr<Extern>& lhs,
-                     const std::unique_ptr<Extern>& rhs) const {
+    bool operator()(const std::unique_ptr<Extern>& lhs,
+                    const std::unique_ptr<Extern>& rhs) const {
       return lhs->address < rhs->address;
     }
-    bool operator() (const Extern* lhs, const std::unique_ptr<Extern>& rhs) const {
+    bool operator()(const Extern* lhs,
+                    const std::unique_ptr<Extern>& rhs) const {
       return lhs->address < rhs->address;
     }
-    bool operator() (const std::unique_ptr<Extern>& lhs, const Extern* rhs) const {
+    bool operator()(const std::unique_ptr<Extern>& lhs,
+                    const Extern* rhs) const {
       return lhs->address < rhs->address;
     }
   };
@@ -474,10 +476,10 @@ class Module {
   typedef map<const string*, File*, CompareStringPtrs> FileByNameMap;
 
   // A set containing Function structures, sorted by address.
-  typedef set<Function*, FunctionCompare> FunctionSet;
+  typedef std::multiset<Function*, FunctionCompare> FunctionSet;
 
   // A set containing Extern structures, sorted by address.
-  typedef set<std::unique_ptr<Extern>, ExternCompare> ExternSet;
+  typedef std::multiset<std::unique_ptr<Extern>, ExternCompare> ExternSet;
 
   // The module owns all the files and functions that have been added
   // to it; destroying the module frees the Files and Functions these
