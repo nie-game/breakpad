@@ -83,7 +83,9 @@ includeclcdir = $(includedir)/$(PACKAGE)/client/linux/crash_generation
 includeclc_HEADERS = $(top_srcdir)/src/client/linux/crash_generation/*.h
 
 includelssdir = $(includedir)/$(PACKAGE)/third_party/lss
-includelss_HEADERS = $(top_srcdir)/src/third_party/lss/*.h
+includecurldir = $(includedir)/$(PACKAGE)/third_party/curl
+includelss_HEADERS = $(top_srcdir)/src/third_party/lss/*.h $(top_srcdir)/src/third_party/curl/*.h
+includecurl_HEADERS = $(top_srcdir)/src/third_party/curl/*.h
 
 includecldir = $(includedir)/$(PACKAGE)/common/linux
 includecl_HEADERS = $(top_srcdir)/src/common/linux/*.h

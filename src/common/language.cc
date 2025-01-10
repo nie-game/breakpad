@@ -78,7 +78,7 @@ class CPPLanguage: public Language {
 
   virtual DemangleResult DemangleName(const string& mangled,
                                       string* demangled) const {
-#if defined(__ANDROID__)
+#if 1
     // Android NDK doesn't provide abi::__cxa_demangle.
     demangled->clear();
     return kDontDemangle;

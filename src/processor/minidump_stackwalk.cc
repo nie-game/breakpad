@@ -135,6 +135,7 @@ enum class encoding_type : uint8_t {
   source_location,
   node_handle,
   cached_string,
+  binary,
   invalid = 255,  //
 };
 enum class level_e { error, warn, info, debug, trace };
@@ -315,6 +316,28 @@ bool PrintMinidumpProcess(const Options& options) {
                     } else
                       break;
                     datas.back() += "\"";
+                  } break;
+                  case encoding_type::binary: {
+                    datas.back() += "blob\n";
+                    uint32_t len;
+                    if (!region->GetMemoryAtAddress(cursor + i, &len))
+                      continue;
+                    i += 4;
+                    if (len < 65536) {
+                      for (size_t j = 0; j < len; j++) {
+                        uint8_t b;
+                        if (!region->GetMemoryAtAddress(cursor + i + j, &b))
+                          break;
+                        if (j % 16 == 0)
+                          datas.back() += std::format("\n  {:#08x} ", j);
+                        else if (j % 4 == 0)
+                          datas.back() += " ";
+                        datas.back() += std::format("{:02x}", +b);
+                      }
+                      i += len;
+                      datas.back() += "\n";
+                    } else
+                      break;
                   } break;
                   case encoding_type::boolean: {
                     uint8_t data;

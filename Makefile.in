@@ -314,8 +314,9 @@ DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
 	$(am__includecl_HEADERS_DIST) $(am__includeclc_HEADERS_DIST) \
 	$(am__includecldwc_HEADERS_DIST) \
 	$(am__includeclh_HEADERS_DIST) $(am__includeclm_HEADERS_DIST) \
-	$(includegbc_HEADERS) $(am__includelss_HEADERS_DIST) \
-	$(includep_HEADERS) $(am__DIST_COMMON)
+	$(am__includecurl_HEADERS_DIST) $(includegbc_HEADERS) \
+	$(am__includelss_HEADERS_DIST) $(includep_HEADERS) \
+	$(am__DIST_COMMON)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
@@ -339,8 +340,9 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" \
 	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includecdir)" \
 	"$(DESTDIR)$(includecldir)" "$(DESTDIR)$(includeclcdir)" \
 	"$(DESTDIR)$(includecldwcdir)" "$(DESTDIR)$(includeclhdir)" \
-	"$(DESTDIR)$(includeclmdir)" "$(DESTDIR)$(includegbcdir)" \
-	"$(DESTDIR)$(includelssdir)" "$(DESTDIR)$(includepdir)"
+	"$(DESTDIR)$(includeclmdir)" "$(DESTDIR)$(includecurldir)" \
+	"$(DESTDIR)$(includegbcdir)" "$(DESTDIR)$(includelssdir)" \
+	"$(DESTDIR)$(includepdir)"
 @DISABLE_PROCESSOR_FALSE@am__EXEEXT_5 = src/common/test_assembler_unittest$(EXEEXT) \
 @DISABLE_PROCESSOR_FALSE@	src/common/dwarf/dwarf2reader_lineinfo_unittest$(EXEEXT) \
 @DISABLE_PROCESSOR_FALSE@	src/common/dwarf/dwarf2reader_splitfunctions_unittest$(EXEEXT) \
@@ -1107,7 +1109,7 @@ src_processor_minidump_processor_unittest_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__append_29)
 am_src_processor_minidump_stackwalk_OBJECTS =  \
-	src/processor/minidump_stackwalk.$(OBJEXT)
+	src/processor/minidump_stackwalk-minidump_stackwalk.$(OBJEXT)
 src_processor_minidump_stackwalk_OBJECTS =  \
 	$(am_src_processor_minidump_stackwalk_OBJECTS)
 src_processor_minidump_stackwalk_DEPENDENCIES =  \
@@ -1141,6 +1143,9 @@ src_processor_minidump_stackwalk_DEPENDENCIES =  \
 	src/processor/symbolic_constants_win.o \
 	src/processor/tokenize.o src/third_party/libdisasm/libdisasm.a \
 	$(am__append_32)
+src_processor_minidump_stackwalk_LINK = $(CXXLD) \
+	$(src_processor_minidump_stackwalk_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_src_processor_minidump_unittest_OBJECTS = src/common/processor_minidump_unittest-test_assembler.$(OBJEXT) \
 	src/processor/minidump_unittest-minidump_unittest.$(OBJEXT) \
 	src/processor/minidump_unittest-synth_minidump.$(OBJEXT)
@@ -1673,7 +1678,7 @@ am__depfiles_remade = src/client/$(DEPDIR)/minidump_file_writer.Po \
 	src/processor/$(DEPDIR)/minidump_dump.Po \
 	src/processor/$(DEPDIR)/minidump_processor.Po \
 	src/processor/$(DEPDIR)/minidump_processor_unittest-minidump_processor_unittest.Po \
-	src/processor/$(DEPDIR)/minidump_stackwalk.Po \
+	src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Po \
 	src/processor/$(DEPDIR)/minidump_unittest-minidump_unittest.Po \
 	src/processor/$(DEPDIR)/minidump_unittest-synth_minidump.Po \
 	src/processor/$(DEPDIR)/module_comparer.Po \
@@ -1926,12 +1931,14 @@ am__includeclh_HEADERS_DIST =  \
 	$(top_srcdir)/src/client/linux/handler/*.h
 am__includeclm_HEADERS_DIST =  \
 	$(top_srcdir)/src/client/linux/minidump_writer/*.h
-am__includelss_HEADERS_DIST = $(top_srcdir)/src/third_party/lss/*.h
+am__includecurl_HEADERS_DIST = $(top_srcdir)/src/third_party/curl/*.h
+am__includelss_HEADERS_DIST = $(top_srcdir)/src/third_party/lss/*.h \
+	$(top_srcdir)/src/third_party/curl/*.h
 HEADERS = $(includec_HEADERS) $(includecl_HEADERS) \
 	$(includeclc_HEADERS) $(includecldwc_HEADERS) \
 	$(includeclh_HEADERS) $(includeclm_HEADERS) \
-	$(includegbc_HEADERS) $(includelss_HEADERS) \
-	$(includep_HEADERS)
+	$(includecurl_HEADERS) $(includegbc_HEADERS) \
+	$(includelss_HEADERS) $(includep_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -2178,7 +2185,7 @@ CSCOPE = @CSCOPE@
 CTAGS = @CTAGS@
 CXX = @CXX@
 CXXDEPMODE = @CXXDEPMODE@
-CXXFLAGS = @CXXFLAGS@
+CXXFLAGS = -std=c++26
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -2280,9 +2287,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # This allows #includes to be relative to src/
-AM_CPPFLAGS = -I$(top_srcdir)/src
-AM_CFLAGS = $(am__append_2)
-AM_CXXFLAGS = $(am__append_1) $(WARN_CXXFLAGS) $(am__append_3)
+AM_CPPFLAGS = -I$(top_srcdir)/src -std=c++26
+AM_CFLAGS = -std=c++26 $(am__append_2)
+AM_CXXFLAGS = -std=c++26 $(am__append_1) $(WARN_CXXFLAGS) \
+	$(am__append_3)
 
 # Specify include paths for ac macros
 ACLOCAL_AMFLAGS = -I m4
@@ -2306,7 +2314,9 @@ dist_doc_DATA = \
 @LINUX_HOST_TRUE@includeclcdir = $(includedir)/$(PACKAGE)/client/linux/crash_generation
 @LINUX_HOST_TRUE@includeclc_HEADERS = $(top_srcdir)/src/client/linux/crash_generation/*.h
 @LINUX_HOST_TRUE@includelssdir = $(includedir)/$(PACKAGE)/third_party/lss
-@LINUX_HOST_TRUE@includelss_HEADERS = $(top_srcdir)/src/third_party/lss/*.h
+@LINUX_HOST_TRUE@includecurldir = $(includedir)/$(PACKAGE)/third_party/curl
+@LINUX_HOST_TRUE@includelss_HEADERS = $(top_srcdir)/src/third_party/lss/*.h $(top_srcdir)/src/third_party/curl/*.h
+@LINUX_HOST_TRUE@includecurl_HEADERS = $(top_srcdir)/src/third_party/curl/*.h
 @LINUX_HOST_TRUE@includecldir = $(includedir)/$(PACKAGE)/common/linux
 @LINUX_HOST_TRUE@includecl_HEADERS = $(top_srcdir)/src/common/linux/*.h
 includegbcdir = $(includedir)/$(PACKAGE)/google_breakpad/common
@@ -3449,7 +3459,7 @@ src_common_dwarf_dwarf2reader_splitfunctions_unittest_LDADD = \
 src_processor_minidump_dump_SOURCES = \
 	src/processor/minidump_dump.cc
 
-src_processor_minidump_dump_LDADD = \
+src_processor_minidump_dump_LDADD = -lzstd \
 	src/common/path_helper.o \
 	src/processor/basic_code_modules.o \
 	src/processor/convert_old_arm64_context.o \
@@ -3463,8 +3473,8 @@ src_processor_minidump_dump_LDADD = \
 src_processor_microdump_stackwalk_SOURCES = \
 	src/processor/microdump_stackwalk.cc
 
-src_processor_microdump_stackwalk_LDADD = src/common/path_helper.o \
-	src/processor/basic_code_modules.o \
+src_processor_microdump_stackwalk_LDADD = -lzstd \
+	src/common/path_helper.o src/processor/basic_code_modules.o \
 	src/processor/basic_source_line_resolver.o \
 	src/processor/call_stack.o \
 	src/processor/convert_old_arm64_context.o \
@@ -3491,11 +3501,14 @@ src_processor_microdump_stackwalk_LDADD = src/common/path_helper.o \
 	src/processor/stackwalker_sparc.o \
 	src/processor/stackwalker_x86.o src/processor/tokenize.o \
 	src/third_party/libdisasm/libdisasm.a $(am__append_31)
+src_processor_minidump_stackwalk_CXXFLAGS = -std=c++26
+src_processor_minidump_stackwalk_CPPFLAGS = -std=c++26
+src_processor_minidump_stackwalk_CFLAGS = -std=c++26
 src_processor_minidump_stackwalk_SOURCES = \
 	src/processor/minidump_stackwalk.cc
 
-src_processor_minidump_stackwalk_LDADD = src/common/path_helper.o \
-	src/processor/basic_code_modules.o \
+src_processor_minidump_stackwalk_LDADD = -lzstd \
+	src/common/path_helper.o src/processor/basic_code_modules.o \
 	src/processor/basic_source_line_resolver.o \
 	src/processor/call_stack.o src/processor/cfi_frame_info.o \
 	src/processor/convert_old_arm64_context.o \
@@ -4828,13 +4841,13 @@ src/processor/minidump_processor_unittest-minidump_processor_unittest.$(OBJEXT):
 src/processor/minidump_processor_unittest$(EXEEXT): $(src_processor_minidump_processor_unittest_OBJECTS) $(src_processor_minidump_processor_unittest_DEPENDENCIES) $(EXTRA_src_processor_minidump_processor_unittest_DEPENDENCIES) src/processor/$(am__dirstamp)
 	@rm -f src/processor/minidump_processor_unittest$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(src_processor_minidump_processor_unittest_OBJECTS) $(src_processor_minidump_processor_unittest_LDADD) $(LIBS)
-src/processor/minidump_stackwalk.$(OBJEXT):  \
+src/processor/minidump_stackwalk-minidump_stackwalk.$(OBJEXT):  \
 	src/processor/$(am__dirstamp) \
 	src/processor/$(DEPDIR)/$(am__dirstamp)
 
 src/processor/minidump_stackwalk$(EXEEXT): $(src_processor_minidump_stackwalk_OBJECTS) $(src_processor_minidump_stackwalk_DEPENDENCIES) $(EXTRA_src_processor_minidump_stackwalk_DEPENDENCIES) src/processor/$(am__dirstamp)
 	@rm -f src/processor/minidump_stackwalk$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(src_processor_minidump_stackwalk_OBJECTS) $(src_processor_minidump_stackwalk_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(src_processor_minidump_stackwalk_LINK) $(src_processor_minidump_stackwalk_OBJECTS) $(src_processor_minidump_stackwalk_LDADD) $(LIBS)
 src/common/processor_minidump_unittest-test_assembler.$(OBJEXT):  \
 	src/common/$(am__dirstamp) \
 	src/common/$(DEPDIR)/$(am__dirstamp)
@@ -5535,7 +5548,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_dump.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_processor.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_processor_unittest-minidump_processor_unittest.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_stackwalk.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_unittest-minidump_unittest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/minidump_unittest-synth_minidump.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/processor/$(DEPDIR)/module_comparer.Po@am__quote@ # am--include-marker
@@ -7447,6 +7460,20 @@ src/processor/minidump_processor_unittest-minidump_processor_unittest.obj: src/p
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_processor_minidump_processor_unittest_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o src/processor/minidump_processor_unittest-minidump_processor_unittest.obj `if test -f 'src/processor/minidump_processor_unittest.cc'; then $(CYGPATH_W) 'src/processor/minidump_processor_unittest.cc'; else $(CYGPATH_W) '$(srcdir)/src/processor/minidump_processor_unittest.cc'; fi`
 
+src/processor/minidump_stackwalk-minidump_stackwalk.o: src/processor/minidump_stackwalk.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_processor_minidump_stackwalk_CPPFLAGS) $(CPPFLAGS) $(src_processor_minidump_stackwalk_CXXFLAGS) $(CXXFLAGS) -MT src/processor/minidump_stackwalk-minidump_stackwalk.o -MD -MP -MF src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Tpo -c -o src/processor/minidump_stackwalk-minidump_stackwalk.o `test -f 'src/processor/minidump_stackwalk.cc' || echo '$(srcdir)/'`src/processor/minidump_stackwalk.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Tpo src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/processor/minidump_stackwalk.cc' object='src/processor/minidump_stackwalk-minidump_stackwalk.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_processor_minidump_stackwalk_CPPFLAGS) $(CPPFLAGS) $(src_processor_minidump_stackwalk_CXXFLAGS) $(CXXFLAGS) -c -o src/processor/minidump_stackwalk-minidump_stackwalk.o `test -f 'src/processor/minidump_stackwalk.cc' || echo '$(srcdir)/'`src/processor/minidump_stackwalk.cc
+
+src/processor/minidump_stackwalk-minidump_stackwalk.obj: src/processor/minidump_stackwalk.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_processor_minidump_stackwalk_CPPFLAGS) $(CPPFLAGS) $(src_processor_minidump_stackwalk_CXXFLAGS) $(CXXFLAGS) -MT src/processor/minidump_stackwalk-minidump_stackwalk.obj -MD -MP -MF src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Tpo -c -o src/processor/minidump_stackwalk-minidump_stackwalk.obj `if test -f 'src/processor/minidump_stackwalk.cc'; then $(CYGPATH_W) 'src/processor/minidump_stackwalk.cc'; else $(CYGPATH_W) '$(srcdir)/src/processor/minidump_stackwalk.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Tpo src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/processor/minidump_stackwalk.cc' object='src/processor/minidump_stackwalk-minidump_stackwalk.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_processor_minidump_stackwalk_CPPFLAGS) $(CPPFLAGS) $(src_processor_minidump_stackwalk_CXXFLAGS) $(CXXFLAGS) -c -o src/processor/minidump_stackwalk-minidump_stackwalk.obj `if test -f 'src/processor/minidump_stackwalk.cc'; then $(CYGPATH_W) 'src/processor/minidump_stackwalk.cc'; else $(CYGPATH_W) '$(srcdir)/src/processor/minidump_stackwalk.cc'; fi`
+
 src/common/processor_minidump_unittest-test_assembler.o: src/common/test_assembler.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_processor_minidump_unittest_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT src/common/processor_minidump_unittest-test_assembler.o -MD -MP -MF src/common/$(DEPDIR)/processor_minidump_unittest-test_assembler.Tpo -c -o src/common/processor_minidump_unittest-test_assembler.o `test -f 'src/common/test_assembler.cc' || echo '$(srcdir)/'`src/common/test_assembler.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/common/$(DEPDIR)/processor_minidump_unittest-test_assembler.Tpo src/common/$(DEPDIR)/processor_minidump_unittest-test_assembler.Po
@@ -8692,6 +8719,27 @@ uninstall-includeclmHEADERS:
 	@list='$(includeclm_HEADERS)'; test -n "$(includeclmdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(includeclmdir)'; $(am__uninstall_files_from_dir)
+install-includecurlHEADERS: $(includecurl_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(includecurl_HEADERS)'; test -n "$(includecurldir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(includecurldir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(includecurldir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(includecurldir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(includecurldir)" || exit $$?; \
+	done
+
+uninstall-includecurlHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(includecurl_HEADERS)'; test -n "$(includecurldir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(includecurldir)'; $(am__uninstall_files_from_dir)
 install-includegbcHEADERS: $(includegbc_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(includegbc_HEADERS)'; test -n "$(includegbcdir)" || list=; \
@@ -9493,7 +9541,7 @@ check: check-am
 all-am: Makefile $(PROGRAMS) $(LIBRARIES) $(SCRIPTS) $(DATA) \
 		$(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includecdir)" "$(DESTDIR)$(includecldir)" "$(DESTDIR)$(includeclcdir)" "$(DESTDIR)$(includecldwcdir)" "$(DESTDIR)$(includeclhdir)" "$(DESTDIR)$(includeclmdir)" "$(DESTDIR)$(includegbcdir)" "$(DESTDIR)$(includelssdir)" "$(DESTDIR)$(includepdir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includecdir)" "$(DESTDIR)$(includecldir)" "$(DESTDIR)$(includeclcdir)" "$(DESTDIR)$(includecldwcdir)" "$(DESTDIR)$(includeclhdir)" "$(DESTDIR)$(includeclmdir)" "$(DESTDIR)$(includecurldir)" "$(DESTDIR)$(includegbcdir)" "$(DESTDIR)$(includelssdir)" "$(DESTDIR)$(includepdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -9817,7 +9865,7 @@ distclean: distclean-am
 	-rm -f src/processor/$(DEPDIR)/minidump_dump.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_processor.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_processor_unittest-minidump_processor_unittest.Po
-	-rm -f src/processor/$(DEPDIR)/minidump_stackwalk.Po
+	-rm -f src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_unittest-minidump_unittest.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_unittest-synth_minidump.Po
 	-rm -f src/processor/$(DEPDIR)/module_comparer.Po
@@ -9915,9 +9963,9 @@ info-am:
 install-data-am: install-dist_docDATA install-includecHEADERS \
 	install-includeclHEADERS install-includeclcHEADERS \
 	install-includecldwcHEADERS install-includeclhHEADERS \
-	install-includeclmHEADERS install-includegbcHEADERS \
-	install-includelssHEADERS install-includepHEADERS \
-	install-pkgconfigDATA
+	install-includeclmHEADERS install-includecurlHEADERS \
+	install-includegbcHEADERS install-includelssHEADERS \
+	install-includepHEADERS install-pkgconfigDATA
 
 install-dvi: install-dvi-am
 
@@ -10177,7 +10225,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f src/processor/$(DEPDIR)/minidump_dump.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_processor.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_processor_unittest-minidump_processor_unittest.Po
-	-rm -f src/processor/$(DEPDIR)/minidump_stackwalk.Po
+	-rm -f src/processor/$(DEPDIR)/minidump_stackwalk-minidump_stackwalk.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_unittest-minidump_unittest.Po
 	-rm -f src/processor/$(DEPDIR)/minidump_unittest-synth_minidump.Po
 	-rm -f src/processor/$(DEPDIR)/module_comparer.Po
@@ -10276,9 +10324,10 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 	uninstall-includecHEADERS uninstall-includeclHEADERS \
 	uninstall-includeclcHEADERS uninstall-includecldwcHEADERS \
 	uninstall-includeclhHEADERS uninstall-includeclmHEADERS \
-	uninstall-includegbcHEADERS uninstall-includelssHEADERS \
-	uninstall-includepHEADERS uninstall-libLIBRARIES \
-	uninstall-libexecPROGRAMS uninstall-pkgconfigDATA
+	uninstall-includecurlHEADERS uninstall-includegbcHEADERS \
+	uninstall-includelssHEADERS uninstall-includepHEADERS \
+	uninstall-libLIBRARIES uninstall-libexecPROGRAMS \
+	uninstall-pkgconfigDATA
 
 .MAKE: check-am install-am install-strip
 
@@ -10298,19 +10347,20 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 	install-html-am install-includecHEADERS \
 	install-includeclHEADERS install-includeclcHEADERS \
 	install-includecldwcHEADERS install-includeclhHEADERS \
-	install-includeclmHEADERS install-includegbcHEADERS \
-	install-includelssHEADERS install-includepHEADERS install-info \
-	install-info-am install-libLIBRARIES install-libexecPROGRAMS \
-	install-man install-pdf install-pdf-am install-pkgconfigDATA \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-local pdf pdf-am ps ps-am \
-	recheck tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-dist_docDATA \
-	uninstall-includecHEADERS uninstall-includeclHEADERS \
-	uninstall-includeclcHEADERS uninstall-includecldwcHEADERS \
-	uninstall-includeclhHEADERS uninstall-includeclmHEADERS \
+	install-includeclmHEADERS install-includecurlHEADERS \
+	install-includegbcHEADERS install-includelssHEADERS \
+	install-includepHEADERS install-info install-info-am \
+	install-libLIBRARIES install-libexecPROGRAMS install-man \
+	install-pdf install-pdf-am install-pkgconfigDATA install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-local pdf pdf-am ps ps-am recheck tags tags-am \
+	uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-dist_docDATA uninstall-includecHEADERS \
+	uninstall-includeclHEADERS uninstall-includeclcHEADERS \
+	uninstall-includecldwcHEADERS uninstall-includeclhHEADERS \
+	uninstall-includeclmHEADERS uninstall-includecurlHEADERS \
 	uninstall-includegbcHEADERS uninstall-includelssHEADERS \
 	uninstall-includepHEADERS uninstall-libLIBRARIES \
 	uninstall-libexecPROGRAMS uninstall-pkgconfigDATA
