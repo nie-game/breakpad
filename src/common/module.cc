@@ -43,6 +43,7 @@
 #include <string.h>
 #include <print>
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -380,14 +381,21 @@ bool Module::AddressIsInModule(Address address) const {
   return false;
 }
 
-bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
-  stream << "MODULE " << os_ << " " << architecture_ << " " << id_ << " "
-         << name_ << "\n";
+bool Module::Write(std::ostream& stream, SymbolData symbol_data, bool preserve_load_address) {
+  stream << "MODULE " << os_ << " " << architecture_ << " "
+         << id_ << " " << name_ << "\n";
   if (!stream.good())
     return ReportError();
 
   if (!code_id_.empty()) {
     stream << "INFO CODE_ID " << code_id_ << "\n";
+  }
+
+  // load_address is subtracted from each line. If we use zero instead, we
+  // preserve the original addresses present in the ELF binary.
+  Address load_offset = load_address_;
+  if (preserve_load_address) {
+    load_offset = 0;
   }
 
   if (symbol_data & SYMBOLS_AND_FILES) {
@@ -406,13 +414,13 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
           return ReportError();
       }
     }
+
     // Write out inline origins.
     for (InlineOrigin* origin : inline_origins) {
       stream << "INLINE_ORIGIN " << origin->id << " " << origin->name << "\n";
       if (!stream.good())
         return ReportError();
     }
-
     // Write out functions and their inlines and lines.
     for (FunctionSet::const_iterator func_it = functions_.begin();
          func_it != functions_.end(); ++func_it) {
@@ -421,7 +429,7 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
       for (auto range_it = func->ranges.cbegin();
            range_it != func->ranges.cend(); ++range_it) {
         stream << "FUNC " << (func->is_multiple ? "m " : "") << hex
-               << (range_it->address - load_address_) << " " << range_it->size
+               << (range_it->address - load_offset) << " " << range_it->size
                << " " << func->parameter_size << " " << func->name << dec
                << "\n";
 
@@ -434,7 +442,7 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
           stream << in->inline_nest_level << " " << in->call_site_line << " "
                  << in->getCallSiteFileID() << " " << in->origin->id << hex;
           for (const Range& r : in->ranges)
-            stream << " " << (r.address - load_address_) << " " << r.size;
+            stream << " " << (r.address - load_offset) << " " << r.size;
           stream << dec << "\n";
         };
         Module::Inline::InlineDFS(func->inlines, write_inline);
@@ -444,8 +452,11 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
         while ((line_it != func->lines.end()) &&
                (line_it->address >= range_it->address) &&
                (line_it->address < (range_it->address + range_it->size))) {
-          stream << hex << (line_it->address - load_address_) << " "
-                 << line_it->size << " " << dec << line_it->number << " "
+          stream << hex
+                 << (line_it->address - load_offset) << " "
+                 << line_it->size << " "
+                 << dec
+                 << line_it->number << " "
                  << line_it->file->source_id << "\n";
 
           if (!stream.good())
@@ -461,7 +472,7 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
          extern_it != externs_.end(); ++extern_it) {
       Extern* ext = extern_it->get();
       stream << "PUBLIC " << (ext->is_multiple ? "m " : "") << hex
-             << (ext->address - load_address_) << " 0 " << ext->name << dec
+             << (ext->address - load_offset) << " 0 " << ext->name << dec
              << "\n";
     }
   }
@@ -471,9 +482,11 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
     for (auto frame_it = stack_frame_entries_.begin();
          frame_it != stack_frame_entries_.end(); ++frame_it) {
       StackFrameEntry* entry = frame_it->get();
-      stream << "STACK CFI INIT " << hex << (entry->address - load_address_)
-             << " " << entry->size << " " << dec;
-      if (!stream.good() || !WriteRuleMap(entry->initial_rules, stream))
+      stream << "STACK CFI INIT " << hex
+             << (entry->address - load_offset) << " "
+             << entry->size << " " << dec;
+      if (!stream.good()
+          || !WriteRuleMap(entry->initial_rules, stream))
         return ReportError();
 
       stream << "\n";
@@ -481,9 +494,10 @@ bool Module::Write(std::ostream& stream, SymbolData symbol_data) {
       // Write out this entry's delta rules as 'STACK CFI' records.
       for (RuleChangeMap::const_iterator delta_it = entry->rule_changes.begin();
            delta_it != entry->rule_changes.end(); ++delta_it) {
-        stream << "STACK CFI " << hex << (delta_it->first - load_address_)
-               << " " << dec;
-        if (!stream.good() || !WriteRuleMap(delta_it->second, stream))
+        stream << "STACK CFI " << hex
+               << (delta_it->first - load_offset) << " " << dec;
+        if (!stream.good()
+            || !WriteRuleMap(delta_it->second, stream))
           return ReportError();
 
         stream << "\n";

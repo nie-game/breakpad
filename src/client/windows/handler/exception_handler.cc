@@ -30,7 +30,11 @@
 #include <config.h>  // Must come first
 #endif
 
+#include "client/windows/handler/exception_handler.h"
+
+#include <assert.h>
 #include <objbase.h>
+#include <stdio.h>
 
 #include <algorithm>
 #include <cassert>
@@ -40,8 +44,8 @@
 #include "common/windows/string_utils-inl.h"
 
 #include "client/windows/common/ipc_protocol.h"
-#include "client/windows/handler/exception_handler.h"
 #include "common/windows/guid_string.h"
+#include "common/windows/string_utils-inl.h"
 
 namespace nie::log {
   struct nie_log_buffer_t {
