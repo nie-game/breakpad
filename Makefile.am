@@ -30,10 +30,10 @@
 
 
 # This allows #includes to be relative to src/
-AM_CPPFLAGS = -I$(top_srcdir)/src -std=c++26
-AM_CFLAGS = -std=c++26
-AM_CXXFLAGS = -std=c++26
-CXXFLAGS = -std=c++26
+AM_CPPFLAGS = -I$(top_srcdir)/src
+AM_CFLAGS = -g
+AM_CXXFLAGS = -std=c++26 -g
+CXXFLAGS = -std=c++26 -g
 
 if ANDROID_HOST
 # This allows using fixed NDK headers when building for Android.
@@ -1476,8 +1476,8 @@ src_processor_microdump_stackwalk_LDADD += \
 endif
 
 src_processor_minidump_stackwalk_CXXFLAGS = -std=c++26
-src_processor_minidump_stackwalk_CPPFLAGS = -std=c++26
-src_processor_minidump_stackwalk_CFLAGS = -std=c++26
+src_processor_minidump_stackwalk_CPPFLAGS =
+src_processor_minidump_stackwalk_CFLAGS =
 src_processor_minidump_stackwalk_SOURCES = \
 	src/processor/minidump_stackwalk.cc
 src_processor_minidump_stackwalk_LDADD = -lzstd \
