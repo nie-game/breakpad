@@ -24,6 +24,15 @@ do
   if is_plat("android") then
     add_files("android/google_breakpad/Android.mk")
   else
+    if is_os("windows") then
+      import("detect.sdks.find_dia_sdk")
+
+      local dia_sdk = find_dia_sdk(nil, {arch = package:arch()})
+      assert(dia_sdk)
+      add_includedirs(unpack(dia_sdk.includedirs))
+      add_linkdirs(unpack(dia_sdk.linkdirs))
+      add_links(package:config("shared") and "msdia140" or "diaguids")
+    end
     add_files("src/processor/*.cc")
     remove_files("src/processor/*test*.cc", "src/processor/microdump_stackwalk.cc", "src/processor/synth_minidump.cc",
       "src/processor/minidump_dump.cc", "src/processor/minidump_stackwalk.cc")
