@@ -5,6 +5,8 @@ set_languages("c++17")
 
 if is_os("linux") then
   add_requires("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support")
+else
+  add_requires("diasdk")
 end
 
 target("breakpad")
@@ -15,6 +17,8 @@ do
   add_headerfiles("src/(google_breakpad/**.h)")
   if is_os("linux") then
     add_packages("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support", {public = true})
+  else
+    add_packages("diasdk")
   end
 
   if is_plat("android") then
