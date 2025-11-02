@@ -23,7 +23,7 @@ do
     on_load("windows", function(target)
       import("detect.sdks.find_dia_sdk")
 
-      local dia_sdk = find_dia_sdk(nil, {arch = package:arch()})
+      local dia_sdk = find_dia_sdk(nil, {arch = target:arch()})
       assert(dia_sdk)
       add({
         includedirs = dia_sdk.includedirs,
