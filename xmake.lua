@@ -6,9 +6,9 @@ set_languages("c++17")
 add_requires("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support")
 
 target("breakpad")
-set_kind("$(kind)")
+set_kind("static")
 
-add_includedirs("src")
+add_includedirs("src", {public = true})
 add_headerfiles("src/(google_breakpad/**.h)")
 add_packages("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support", {public = true})
 
@@ -26,7 +26,7 @@ else
 
   add_files("src/common/*.cc", "src/client/*.cc")
   remove_files("src/common/*test*.cc", "src/client/*test*.cc")
-  add_headerfiles("src/(common/*.h)", "src/(client/*.h)")
+  add_headerfiles("src/(common/*.h)", "src/(client/*.h)", "src/(processor/*.h)")
   remove_headerfiles("src/common/*test*.h", "src/client/*test*.h")
 
   if is_plat("windows") then

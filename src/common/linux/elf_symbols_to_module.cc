@@ -176,6 +176,11 @@ bool ELFSymbolsToModule(const uint8_t* symtab_section,
       }
 #endif
       module->AddExtern(std::move(ext));
+    } else if (ELF32_ST_TYPE(iterator->info) == STT_OBJECT &&
+               iterator->shndx != SHN_UNDEF) {
+      auto ext = std::make_unique<Module::Extern>(iterator->value);
+      ext->name = SymbolString(iterator->name_offset, strings);
+      module->AddExtern(std::move(ext));
     }
     ++iterator;
   }

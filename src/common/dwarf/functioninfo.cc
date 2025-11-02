@@ -65,13 +65,13 @@ void CULineInfoHandler::DefineDir(const string& name, uint32_t dir_num) {
 }
 
 void CULineInfoHandler::DefineFile(const string& name,
-                                   int32 file_num, uint32_t dir_num,
+                                   int32_t file_num, uint32_t dir_num,
                                    uint64_t mod_time, uint64_t length) {
   assert(dir_num >= 0);
   assert(dir_num < dirs_->size());
 
   // These should never come out of order, actually.
-  if (file_num == (int32)files_->size() || file_num == -1) {
+  if (file_num == (int32_t)files_->size() || file_num == -1) {
     string dir = dirs_->at(dir_num);
 
     SourceFileInfo s;
@@ -166,7 +166,7 @@ void CUFunctionInfoHandler::ProcessAttributeUnsigned(uint64_t offset,
 
     scoped_ptr<LineInfo> lireader(new LineInfo(iter->second.first + data,
                                                iter->second.second  - data,
-                                               reader_, linehandler_));
+                                               reader_, nullptr, 0, nullptr, 0, linehandler_));
     lireader->Start();
   } else if (current_function_info_) {
     switch (attr) {
