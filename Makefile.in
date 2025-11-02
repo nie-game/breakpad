@@ -314,8 +314,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
 	$(am__includecl_HEADERS_DIST) $(am__includeclc_HEADERS_DIST) \
 	$(am__includecldwc_HEADERS_DIST) \
 	$(am__includeclh_HEADERS_DIST) $(am__includeclm_HEADERS_DIST) \
-	$(includegbc_HEADERS) $(am__includelss_HEADERS_DIST) \
-	$(includep_HEADERS) $(am__DIST_COMMON)
+	$(includegbc_HEADERS) $(includep_HEADERS) $(am__DIST_COMMON)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
@@ -340,7 +339,7 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" \
 	"$(DESTDIR)$(includecldir)" "$(DESTDIR)$(includeclcdir)" \
 	"$(DESTDIR)$(includecldwcdir)" "$(DESTDIR)$(includeclhdir)" \
 	"$(DESTDIR)$(includeclmdir)" "$(DESTDIR)$(includegbcdir)" \
-	"$(DESTDIR)$(includelssdir)" "$(DESTDIR)$(includepdir)"
+	"$(DESTDIR)$(includepdir)"
 @DISABLE_PROCESSOR_FALSE@am__EXEEXT_5 = src/common/test_assembler_unittest$(EXEEXT) \
 @DISABLE_PROCESSOR_FALSE@	src/common/dwarf/dwarf2reader_lineinfo_unittest$(EXEEXT) \
 @DISABLE_PROCESSOR_FALSE@	src/common/dwarf/dwarf2reader_splitfunctions_unittest$(EXEEXT) \
@@ -1926,12 +1925,10 @@ am__includeclh_HEADERS_DIST =  \
 	$(top_srcdir)/src/client/linux/handler/*.h
 am__includeclm_HEADERS_DIST =  \
 	$(top_srcdir)/src/client/linux/minidump_writer/*.h
-am__includelss_HEADERS_DIST = $(top_srcdir)/src/third_party/lss/*.h
 HEADERS = $(includec_HEADERS) $(includecl_HEADERS) \
 	$(includeclc_HEADERS) $(includecldwc_HEADERS) \
 	$(includeclh_HEADERS) $(includeclm_HEADERS) \
-	$(includegbc_HEADERS) $(includelss_HEADERS) \
-	$(includep_HEADERS)
+	$(includegbc_HEADERS) $(includep_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -9914,8 +9911,7 @@ install-data-am: install-dist_docDATA install-includecHEADERS \
 	install-includeclHEADERS install-includeclcHEADERS \
 	install-includecldwcHEADERS install-includeclhHEADERS \
 	install-includeclmHEADERS install-includegbcHEADERS \
-	install-includelssHEADERS install-includepHEADERS \
-	install-pkgconfigDATA
+	install-includepHEADERS install-pkgconfigDATA
 
 install-dvi: install-dvi-am
 
@@ -10274,8 +10270,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 	uninstall-includecHEADERS uninstall-includeclHEADERS \
 	uninstall-includeclcHEADERS uninstall-includecldwcHEADERS \
 	uninstall-includeclhHEADERS uninstall-includeclmHEADERS \
-	uninstall-includegbcHEADERS uninstall-includelssHEADERS \
-	uninstall-includepHEADERS uninstall-libLIBRARIES \
+	uninstall-includegbcHEADERS uninstall-includepHEADERS uninstall-libLIBRARIES \
 	uninstall-libexecPROGRAMS uninstall-pkgconfigDATA
 
 .MAKE: check-am install-am install-strip
@@ -10297,7 +10292,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 	install-includeclHEADERS install-includeclcHEADERS \
 	install-includecldwcHEADERS install-includeclhHEADERS \
 	install-includeclmHEADERS install-includegbcHEADERS \
-	install-includelssHEADERS install-includepHEADERS install-info \
+	install-includepHEADERS install-info \
 	install-info-am install-libLIBRARIES install-libexecPROGRAMS \
 	install-man install-pdf install-pdf-am install-pkgconfigDATA \
 	install-ps install-ps-am install-strip installcheck \
@@ -10309,7 +10304,7 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dist_docDATA \
 	uninstall-includecHEADERS uninstall-includeclHEADERS \
 	uninstall-includeclcHEADERS uninstall-includecldwcHEADERS \
 	uninstall-includeclhHEADERS uninstall-includeclmHEADERS \
-	uninstall-includegbcHEADERS uninstall-includelssHEADERS \
+	uninstall-includegbcHEADERS \
 	uninstall-includepHEADERS uninstall-libLIBRARIES \
 	uninstall-libexecPROGRAMS uninstall-pkgconfigDATA
 
