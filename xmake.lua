@@ -11,7 +11,9 @@ do
 
   add_includedirs("src", {public = true})
   add_headerfiles("src/(google_breakpad/**.h)")
-  add_packages("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support", {public = true})
+  if is_os("linux") then
+    add_packages("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support", {public = true})
+  end
 
   if is_plat("android") then
     add_files("android/google_breakpad/Android.mk")
