@@ -26,6 +26,8 @@ do
       local dia_sdk = find_dia_sdk(nil, {arch = target:arch()})
       assert(dia_sdk)
       target:add({includedirs = dia_sdk.includedirs, linkdirs = dia_sdk.linkdirs, links = {"diaguids"}})
+      target:add("linkdirs", path.join(dia_sdk.sdkdir, "lib"), path.join(dia_sdk.sdkdir, "bin"))
+      target:add("includedirs", path.join(dia_sdk.sdkdir, "include"))
     end)
     add_files("src/processor/*.cc")
     remove_files("src/processor/*test*.cc", "src/processor/microdump_stackwalk.cc", "src/processor/synth_minidump.cc",
