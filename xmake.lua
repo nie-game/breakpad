@@ -3,7 +3,9 @@ add_rules("mode.debug", "mode.release")
 
 set_languages("c++17")
 
-add_requires("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support")
+if is_os("linux") then
+  add_requires("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support")
+end
 
 target("breakpad")
 do
