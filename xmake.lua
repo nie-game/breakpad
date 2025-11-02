@@ -5,8 +5,6 @@ set_languages("c++17")
 
 if is_os("linux") then
   add_requires("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support")
-else
-  add_requires("diasdk")
 end
 
 target("breakpad")
@@ -17,8 +15,6 @@ do
   add_headerfiles("src/(google_breakpad/**.h)")
   if is_os("linux") then
     add_packages("libdisasm", "autoconf", "automake", "m4", "libtool", "linux-syscall-support", {public = true})
-  else
-    add_packages("diasdk")
   end
 
   if is_plat("android") then
@@ -29,8 +25,8 @@ do
 
       local dia_sdk = find_dia_sdk(nil, {arch = package:arch()})
       assert(dia_sdk)
-      add_includedirs(unpack(dia_sdk.includedirs))
-      add_linkdirs(unpack(dia_sdk.linkdirs))
+      add_includedirs(table.unpack(dia_sdk.includedirs))
+      add_linkdirs(table.unpack(dia_sdk.linkdirs))
       add_links(package:config("shared") and "msdia140" or "diaguids")
     end
     add_files("src/processor/*.cc")
