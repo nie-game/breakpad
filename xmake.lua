@@ -48,9 +48,6 @@ do
         "src/client/minidump_file_writer.h")
 
       add_syslinks("wininet", "dbghelp", "imagehlp")
-      if is_kind("shared") then
-        add_rules("utils.symbols.export_all", {export_classes = true})
-      end
     else
       add_files("src/common/dwarf/*.cc")
       remove_files("src/common/dwarf/*test*.cc")
