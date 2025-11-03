@@ -715,13 +715,13 @@ bool PDBSourceLineWriter::PrintFunctions() {
   for (it = rva_symbol.begin(); it != rva_symbol.end(); ++it) {
     CComPtr<IDiaSymbol> symbol = it->second.symbol;
     // Only print public symbols if there is no function symbol for the address.
-    if (!it->second.is_public) {
-      if (!PrintFunction(symbol, symbol, it->second.is_multiple))
-        return false;
-    } else {
-      if (!PrintCodePublicSymbol(symbol, it->second.is_multiple))
-        return false;
-    }
+    // if (!it->second.is_public) {
+    if (!PrintFunction(symbol, symbol, it->second.is_multiple))
+      return false;
+    //} else {
+    if (!PrintCodePublicSymbol(symbol, it->second.is_multiple))
+      return false;
+    //}
   }
 
   // When building with PGO, the compiler can split functions into
