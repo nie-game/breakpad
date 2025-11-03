@@ -1073,24 +1073,24 @@ bool PDBSourceLineWriter::PrintCodePublicSymbol(IDiaSymbol* symbol,
   BOOL is_code = false;
   if (FAILED(symbol->get_code(&is_code))) {
     fprintf(stderr, "get_code\n");
-    // return false;
+    return false;
   }
   if (!is_code) {
-    fprintf(stderr, "!is_code\n");
-    // return true;
+    // fprintf(stderr, "!is_code\n");
+    //  return true;
   }
 
   DWORD rva;
   if (FAILED(symbol->get_relativeVirtualAddress(&rva))) {
     fprintf(stderr, "!get_relativeVirtualAddress\n");
-    // return false;
+    return false;
   }
 
   CComBSTR name;
   int stack_param_size;
   if (!GetSymbolFunctionName(symbol, &name, &stack_param_size)) {
     fprintf(stderr, "!GetSymbolFunctionName\n");
-    // return false;
+    return false;
   }
 
   AddressRangeVector ranges;
