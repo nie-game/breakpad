@@ -51,9 +51,9 @@ string NTStatusToString(uint32_t ntstatus) {
   //
   // egrep '#define [A-Z_0-9]+\s+\(\(NTSTATUS\)0xC[0-9A-F]+L\)' ntstatus.h
   // | tr -d '\r'
-  // | sed -r 's@#define ([A-Z_0-9]+)\s+\(\(NTSTATUS\)(0xC[0-9A-F]+)L\).*@\2 \1@'
-  // | sort
-  // | sed -r 's@(0xC[0-9A-F]+) ([A-Z_0-9]+)@    case MD_NTSTATUS_WIN_\2:\n      reason = "\2";\n      break;@'
+  // | sed -r 's@#define ([A-Z_0-9]+)\s+\(\(NTSTATUS\)(0xC[0-9A-F]+)L\).*@\2
+  // \1@' | sort | sed -r 's@(0xC[0-9A-F]+) ([A-Z_0-9]+)@    case
+  // MD_NTSTATUS_WIN_\2:\n      reason = "\2";\n      break;@'
   //
   // With easy copy to clipboard with
   // | xclip -selection c  # on linux
@@ -61,7 +61,7 @@ string NTStatusToString(uint32_t ntstatus) {
   // | pbcopy  # on mac
   //
   // and then the default case added.
-  switch (ntstatus) {
+  switch (int32_t(ntstatus)) {
     case MD_NTSTATUS_WIN_STATUS_UNSUCCESSFUL:
       reason = "STATUS_UNSUCCESSFUL";
       break;
@@ -4341,7 +4341,8 @@ string NTStatusToString(uint32_t ntstatus) {
       reason = "STATUS_GRAPHICS_MODE_ID_MUST_BE_UNIQUE";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_EMPTY_ADAPTER_MONITOR_MODE_SUPPORT_INTERSECTION:
-      reason = "STATUS_GRAPHICS_EMPTY_ADAPTER_MONITOR_MODE_SUPPORT_INTERSECTION";
+      reason =
+          "STATUS_GRAPHICS_EMPTY_ADAPTER_MONITOR_MODE_SUPPORT_INTERSECTION";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_VIDEO_PRESENT_TARGETS_LESS_THAN_SOURCES:
       reason = "STATUS_GRAPHICS_VIDEO_PRESENT_TARGETS_LESS_THAN_SOURCES";
@@ -4440,7 +4441,8 @@ string NTStatusToString(uint32_t ntstatus) {
       reason = "STATUS_GRAPHICS_INVALID_PATH_CONTENT_GEOMETRY_TRANSFORMATION";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_PATH_CONTENT_GEOMETRY_TRANSFORMATION_NOT_SUPPORTED:
-      reason = "STATUS_GRAPHICS_PATH_CONTENT_GEOMETRY_TRANSFORMATION_NOT_SUPPORTED";
+      reason =
+          "STATUS_GRAPHICS_PATH_CONTENT_GEOMETRY_TRANSFORMATION_NOT_SUPPORTED";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_INVALID_GAMMA_RAMP:
       reason = "STATUS_GRAPHICS_INVALID_GAMMA_RAMP";
@@ -4590,7 +4592,8 @@ string NTStatusToString(uint32_t ntstatus) {
       reason = "STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_NO_LONGER_EXISTS";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_DOES_NOT_HAVE_COPP_SEMANTICS:
-      reason = "STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_DOES_NOT_HAVE_COPP_SEMANTICS";
+      reason =
+          "STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_DOES_NOT_HAVE_COPP_SEMANTICS";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_OPM_INVALID_INFORMATION_REQUEST:
       reason = "STATUS_GRAPHICS_OPM_INVALID_INFORMATION_REQUEST";
@@ -4599,7 +4602,8 @@ string NTStatusToString(uint32_t ntstatus) {
       reason = "STATUS_GRAPHICS_OPM_DRIVER_INTERNAL_ERROR";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_DOES_NOT_HAVE_OPM_SEMANTICS:
-      reason = "STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_DOES_NOT_HAVE_OPM_SEMANTICS";
+      reason =
+          "STATUS_GRAPHICS_OPM_PROTECTED_OUTPUT_DOES_NOT_HAVE_OPM_SEMANTICS";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_OPM_SIGNALING_NOT_SUPPORTED:
       reason = "STATUS_GRAPHICS_OPM_SIGNALING_NOT_SUPPORTED";
@@ -4626,7 +4630,8 @@ string NTStatusToString(uint32_t ntstatus) {
       reason = "STATUS_GRAPHICS_DDCCI_INVALID_DATA";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_DDCCI_MONITOR_RETURNED_INVALID_TIMING_STATUS_BYTE:
-      reason = "STATUS_GRAPHICS_DDCCI_MONITOR_RETURNED_INVALID_TIMING_STATUS_BYTE";
+      reason =
+          "STATUS_GRAPHICS_DDCCI_MONITOR_RETURNED_INVALID_TIMING_STATUS_BYTE";
       break;
     case MD_NTSTATUS_WIN_STATUS_GRAPHICS_DDCCI_INVALID_CAPABILITIES_STRING:
       reason = "STATUS_GRAPHICS_DDCCI_INVALID_CAPABILITIES_STRING";
