@@ -830,7 +830,8 @@ bool PDBSourceLineWriter::GetInlines(IDiaSymbol* block,
   }
   ULONG count;
   CComPtr<IDiaSymbol> callsite;
-  while (SUCCEEDED(inline_callsites->Next(1, &callsite, &count)) &&
+  while (inline_callsites &&
+         SUCCEEDED(inline_callsites->Next(1, &callsite, &count)) &&
          count == 1) {
     unique_ptr<Inline> new_inline(new Inline(inline_nest_level));
     CComPtr<IDiaEnumLineNumbers> lines;
