@@ -32,13 +32,13 @@
 
 #include "common/windows/pdb_source_line_writer.h"
 
-#include <windows.h>
-#include <winnt.h>
+#include <ImageHlp.h>
 #include <atlbase.h>
 #include <dia2.h>
 #include <diacreate.h>
-#include <ImageHlp.h>
 #include <stdio.h>
+#include <windows.h>
+#include <winnt.h>
 
 #include <algorithm>
 #include <limits>
@@ -56,7 +56,7 @@
 // IDiaSymbol::get_undecoratedNameEx.
 #ifndef UNDNAME_NO_ECSU
 #define UNDNAME_NO_ECSU 0x8000  // Suppresses enum/class/struct/union.
-#endif  // UNDNAME_NO_ECSU
+#endif                          // UNDNAME_NO_ECSU
 
 namespace google_breakpad {
 
@@ -114,8 +114,6 @@ void MaybeRecordSymbol(DWORD rva,
   }
 }
 
-
-
 bool SymbolsMatch(IDiaSymbol* a, IDiaSymbol* b) {
   DWORD a_section, a_offset, b_section, b_offset;
   if (FAILED(a->get_addressSection(&a_section)) ||
@@ -160,16 +158,12 @@ bool CreateDiaDataSourceInstance(CComPtr<IDiaDataSource>& data_source) {
   return false;
 }
 
-const DWORD kUndecorateOptions = UNDNAME_NO_MS_KEYWORDS |
-                                 UNDNAME_NO_FUNCTION_RETURNS |
-                                 UNDNAME_NO_ALLOCATION_MODEL |
-                                 UNDNAME_NO_ALLOCATION_LANGUAGE |
-                                 UNDNAME_NO_THISTYPE |
-                                 UNDNAME_NO_ACCESS_SPECIFIERS |
-                                 UNDNAME_NO_THROW_SIGNATURES |
-                                 UNDNAME_NO_MEMBER_TYPE |
-                                 UNDNAME_NO_RETURN_UDT_MODEL |
-                                 UNDNAME_NO_ECSU;
+const DWORD kUndecorateOptions =
+    UNDNAME_NO_MS_KEYWORDS | UNDNAME_NO_FUNCTION_RETURNS |
+    UNDNAME_NO_ALLOCATION_MODEL | UNDNAME_NO_ALLOCATION_LANGUAGE |
+    UNDNAME_NO_THISTYPE | UNDNAME_NO_ACCESS_SPECIFIERS |
+    UNDNAME_NO_THROW_SIGNATURES | UNDNAME_NO_MEMBER_TYPE |
+    UNDNAME_NO_RETURN_UDT_MODEL | UNDNAME_NO_ECSU;
 
 #define arraysize(f) (sizeof(f) / sizeof(*f))
 
@@ -196,9 +190,8 @@ void StripLlvmSuffixAndUndecorate(BSTR* name) {
     if (c == L'.' || (c == L'$' && len - i == 32 + 1)) {
       (*name)[i] = L'\0';
       wchar_t undecorated[1024];
-      DWORD res = UnDecorateSymbolNameW(*name, undecorated,
-                                        arraysize(undecorated),
-                                        kUndecorateOptions);
+      DWORD res = UnDecorateSymbolNameW(
+          *name, undecorated, arraysize(undecorated), kUndecorateOptions);
       if (res == 0 || undecorated[0] == L'?') {
         // Demangling failed; restore the symbol name and return.
         (*name)[i] = c;
@@ -217,16 +210,19 @@ void StripLlvmSuffixAndUndecorate(BSTR* name) {
 void PrintOpenError(HRESULT hr, const char* fn_name, const wchar_t* file) {
   switch (hr) {
     case E_PDB_NOT_FOUND:
-      fprintf(stderr, "%s: Failed to open %ws, or the file has an "
-              "invalid format.\n", fn_name, file);
+      fprintf(stderr,
+              "%s: Failed to open %ws, or the file has an "
+              "invalid format.\n",
+              fn_name, file);
       break;
     case E_PDB_FORMAT:
-      fprintf(stderr, "%s: Attempted to access %ws with an obsolete "
-              "format.\n", fn_name, file);
+      fprintf(stderr,
+              "%s: Attempted to access %ws with an obsolete "
+              "format.\n",
+              fn_name, file);
       break;
     case E_PDB_INVALID_SIG:
-      fprintf(stderr, "%s: Signature does not match for %ws.\n", fn_name,
-              file);
+      fprintf(stderr, "%s: Signature does not match for %ws.\n", fn_name, file);
       break;
     case E_PDB_INVALID_AGE:
       fprintf(stderr, "%s: Age does not match for %ws.\n", fn_name, file);
@@ -239,8 +235,8 @@ void PrintOpenError(HRESULT hr, const char* fn_name, const wchar_t* file) {
               fn_name, file);
       break;
     default:
-      fprintf(stderr, "%s: Unexpected error 0x%lx, file: %ws.\n",
-              fn_name, hr, file);
+      fprintf(stderr, "%s: Unexpected error 0x%lx, file: %ws.\n", fn_name, hr,
+              file);
       break;
   }
 }
@@ -431,8 +427,10 @@ bool PDBSourceLineWriter::Open(const wstring& file, FileFormat format) {
     const int kGuidSize = 64;
     wchar_t classid[kGuidSize] = {0};
     StringFromGUID2(CLSID_DiaSource, classid, kGuidSize);
-    fprintf(stderr, "CoCreateInstance CLSID_DiaSource %S failed "
-            "(msdia*.dll unregistered?)\n", classid);
+    fprintf(stderr,
+            "CoCreateInstance CLSID_DiaSource %S failed "
+            "(msdia*.dll unregistered?)\n",
+            classid);
     return false;
   }
 
@@ -609,8 +607,8 @@ bool PDBSourceLineWriter::PrintSourceFiles() {
   }
 
   CComPtr<IDiaEnumSymbols> compilands;
-  if (FAILED(global->findChildren(SymTagCompiland, NULL,
-                                  nsNone, &compilands))) {
+  if (FAILED(
+          global->findChildren(SymTagCompiland, NULL, nsNone, &compilands))) {
     fprintf(stderr, "findChildren failed\n");
     return false;
   }
@@ -734,8 +732,8 @@ bool PDBSourceLineWriter::PrintFunctions() {
   // of those blocks and print out an extra FUNC line for blocks
   // that are not contained in their parent functions.
   CComPtr<IDiaEnumSymbols> compilands;
-  if (FAILED(global->findChildren(SymTagCompiland, NULL,
-                                  nsNone, &compilands))) {
+  if (FAILED(
+          global->findChildren(SymTagCompiland, NULL, nsNone, &compilands))) {
     fprintf(stderr, "findChildren failed on the global\n");
     return false;
   }
@@ -743,8 +741,7 @@ bool PDBSourceLineWriter::PrintFunctions() {
   CComPtr<IDiaSymbol> compiland;
   while (SUCCEEDED(compilands->Next(1, &compiland, &count)) && count == 1) {
     CComPtr<IDiaEnumSymbols> blocks;
-    if (FAILED(compiland->findChildren(SymTagBlock, NULL,
-                                       nsNone, &blocks))) {
+    if (FAILED(compiland->findChildren(SymTagBlock, NULL, nsNone, &blocks))) {
       fprintf(stderr, "findChildren failed on a compiland\n");
       return false;
     }
@@ -755,8 +752,7 @@ bool PDBSourceLineWriter::PrintFunctions() {
       CComPtr<IDiaSymbol> parent;
       DWORD tag;
       if (SUCCEEDED(block->get_lexicalParent(&parent)) &&
-          SUCCEEDED(parent->get_symTag(&tag)) &&
-          tag == SymTagFunction) {
+          SUCCEEDED(parent->get_symTag(&tag)) && tag == SymTagFunction) {
         // now get the block's offset and the function's offset and size,
         // and determine if the block is outside of the function
         DWORD func_rva, block_rva;
@@ -933,8 +929,8 @@ bool PDBSourceLineWriter::PrintFrameDataUsingPDB() {
     // program string.  In that case, check whether %ebp is used.
     HRESULT program_string_result;
     CComBSTR program_string;
-    if (FAILED(program_string_result = frame_data->get_program(
-        &program_string))) {
+    if (FAILED(program_string_result =
+                   frame_data->get_program(&program_string))) {
       return false;
     }
 
@@ -942,8 +938,8 @@ bool PDBSourceLineWriter::PrintFrameDataUsingPDB() {
     // %ebp is not used.
     BOOL allocates_base_pointer = FALSE;
     if (program_string_result != S_OK) {
-      if (FAILED(frame_data->get_allocatesBasePointer(
-          &allocates_base_pointer))) {
+      if (FAILED(
+              frame_data->get_allocatesBasePointer(&allocates_base_pointer))) {
         return false;
       }
     }
@@ -971,8 +967,7 @@ bool PDBSourceLineWriter::PrintFrameDataUsingPDB() {
       // And figure out where the code bytes have landed.
       AddressRangeVector code_ranges;
       MapAddressRange(image_map_,
-                      AddressRange(rva + prolog_size,
-                                   code_size - prolog_size),
+                      AddressRange(rva + prolog_size, code_size - prolog_size),
                       &code_ranges);
 
       struct FrameInfo {
@@ -987,20 +982,19 @@ bool PDBSourceLineWriter::PrintFrameDataUsingPDB() {
       // be outputting independent frame info for the prolog and code portions.
       if (prolog_ranges.size() == 1 && code_ranges.size() == 1 &&
           prolog_ranges[0].end() == code_ranges[0].rva) {
-        FrameInfo fi = { prolog_ranges[0].rva,
-                         prolog_ranges[0].length + code_ranges[0].length,
-                         prolog_ranges[0].length };
+        FrameInfo fi = {prolog_ranges[0].rva,
+                        prolog_ranges[0].length + code_ranges[0].length,
+                        prolog_ranges[0].length};
         frame_infos.push_back(fi);
       } else {
         // Otherwise we output the prolog and code frame info independently.
         for (size_t i = 0; i < prolog_ranges.size(); ++i) {
-          FrameInfo fi = { prolog_ranges[i].rva,
-                           prolog_ranges[i].length,
-                           prolog_ranges[i].length };
+          FrameInfo fi = {prolog_ranges[i].rva, prolog_ranges[i].length,
+                          prolog_ranges[i].length};
           frame_infos.push_back(fi);
         }
         for (size_t i = 0; i < code_ranges.size(); ++i) {
-          FrameInfo fi = { code_ranges[i].rva, code_ranges[i].length, 0 };
+          FrameInfo fi = {code_ranges[i].rva, code_ranges[i].length, 0};
           frame_infos.push_back(fi);
         }
       }
@@ -1008,9 +1002,9 @@ bool PDBSourceLineWriter::PrintFrameDataUsingPDB() {
       for (size_t i = 0; i < frame_infos.size(); ++i) {
         const FrameInfo& fi(frame_infos[i]);
         fprintf(output_, "STACK WIN %lx %lx %lx %lx %x %lx %lx %lx %lx %d ",
-                type, fi.rva, fi.code_size, fi.prolog_size,
-                0 /* epilog_size */, parameter_size, saved_register_size,
-                local_size, max_stack_size, program_string_result == S_OK);
+                type, fi.rva, fi.code_size, fi.prolog_size, 0 /* epilog_size */,
+                parameter_size, saved_register_size, local_size, max_stack_size,
+                program_string_result == S_OK);
         if (program_string_result == S_OK) {
           fprintf(output_, "%ws\n", program_string.m_str);
         } else {
@@ -1049,23 +1043,27 @@ bool PDBSourceLineWriter::PrintFrameData() {
 
 bool PDBSourceLineWriter::PrintCodePublicSymbol(IDiaSymbol* symbol,
                                                 bool has_multiple_symbols) {
-  BOOL is_code;
+  BOOL is_code = false;
   if (FAILED(symbol->get_code(&is_code))) {
-    return false;
+    fprintf(stderr, "get_code\n");
+    // return false;
   }
   if (!is_code) {
-    return true;
+    fprintf(stderr, "!is_code\n");
+    // return true;
   }
 
   DWORD rva;
   if (FAILED(symbol->get_relativeVirtualAddress(&rva))) {
-    return false;
+    fprintf(stderr, "!get_relativeVirtualAddress\n");
+    // return false;
   }
 
   CComBSTR name;
   int stack_param_size;
   if (!GetSymbolFunctionName(symbol, &name, &stack_param_size)) {
-    return false;
+    fprintf(stderr, "!GetSymbolFunctionName\n");
+    // return false;
   }
 
   AddressRangeVector ranges;
@@ -1074,7 +1072,7 @@ bool PDBSourceLineWriter::PrintCodePublicSymbol(IDiaSymbol* symbol,
     const char* optional_multiple_field = has_multiple_symbols ? "m " : "";
     fprintf(output_, "PUBLIC %s%lx %x %ws\n", optional_multiple_field,
             ranges[i].rva, stack_param_size > 0 ? stack_param_size : 0,
-            name.m_str);
+            name.m_str ? name.m_str : L"");
   }
 
   // Now walk the function in the original untranslated space, asking DIA
@@ -1121,9 +1119,8 @@ bool PDBSourceLineWriter::PrintPDBInfo() {
   // Hard-code "windows" for the OS because that's the only thing that makes
   // sense for PDB files.  (This might not be strictly correct for Windows CE
   // support, but we don't care about that at the moment.)
-  fprintf(output_, "MODULE windows %ws %ws %ws\n",
-          info.cpu.c_str(), info.debug_identifier.c_str(),
-          info.debug_file.c_str());
+  fprintf(output_, "MODULE windows %ws %ws %ws\n", info.cpu.c_str(),
+          info.debug_identifier.c_str(), info.debug_file.c_str());
 
   return true;
 }
@@ -1134,8 +1131,7 @@ bool PDBSourceLineWriter::PrintPEInfo() {
     return false;
   }
 
-  fprintf(output_, "INFO CODE_ID %ws %ws\n",
-          info.code_identifier.c_str(),
+  fprintf(output_, "INFO CODE_ID %ws %ws\n", info.code_identifier.c_str(),
           info.code_file.c_str());
   return true;
 }
@@ -1169,7 +1165,7 @@ static bool wcstol_positive_strict(wchar_t* string, int* result) {
       return false;
     }
     // Forbid leading zeroes unless the string is just "0".
-    if (value == 0 && *(c+1) != '\0') {
+    if (value == 0 && *(c + 1) != '\0') {
       return false;
     }
   }
@@ -1189,7 +1185,7 @@ bool PDBSourceLineWriter::FindPEFile() {
     wstring file(symbols_file);
 
     // Look for an EXE or DLL file.
-    const wchar_t* extensions[] = { L"exe", L"dll" };
+    const wchar_t* extensions[] = {L"exe", L"dll"};
     for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); i++) {
       size_t dot_pos = file.find_last_of(L".");
       if (dot_pos != wstring::npos) {
@@ -1279,9 +1275,9 @@ bool PDBSourceLineWriter::GetSymbolFunctionName(IDiaSymbol* function,
 
         // Undecorate the name by moving it one character to the left in its
         // buffer, and terminating it where the last '@' had been.
-        WindowsStringUtils::safe_wcsncpy(*name, length,
-                                         *name + 1, last_at - *name - 1);
-     } else if (*name[0] == '_') {
+        WindowsStringUtils::safe_wcsncpy(*name, length, *name + 1,
+                                         last_at - *name - 1);
+      } else if (*name[0] == '_') {
         // This symbol's name is encoded according to the cdecl rules.  The
         // name doesn't end in a '@' character followed by a decimal positive
         // integer, so it's not a stdcall name.  Strip off the leading
@@ -1300,8 +1296,8 @@ int PDBSourceLineWriter::GetFunctionStackParamSize(IDiaSymbol* function) {
 
   // Gather the symbols corresponding to data.
   CComPtr<IDiaEnumSymbols> data_children;
-  if (FAILED(function->findChildren(SymTagData, NULL, nsNone,
-                                    &data_children))) {
+  if (FAILED(
+          function->findChildren(SymTagData, NULL, nsNone, &data_children))) {
     return 0;
   }
 
@@ -1379,7 +1375,7 @@ int PDBSourceLineWriter::GetFunctionStackParamSize(IDiaSymbol* function) {
       }
     }
 
-next_child:
+  next_child:
     child.Release();
   }
 

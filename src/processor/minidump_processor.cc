@@ -421,12 +421,12 @@ static const MDRawSystemInfo* GetSystemInfo(Minidump* dump,
 static uint64_t GetAddressForArchitecture(const MDCPUArchitecture architecture,
                                           size_t raw_address) {
   switch (architecture) {
-    case MD_CPU_ARCHITECTURE_X86:
-    case MD_CPU_ARCHITECTURE_MIPS:
-    case MD_CPU_ARCHITECTURE_PPC:
-    case MD_CPU_ARCHITECTURE_SHX:
-    case MD_CPU_ARCHITECTURE_ARM:
-    case MD_CPU_ARCHITECTURE_X86_WIN64:
+    case (int32_t)MD_CPU_ARCHITECTURE_X86:
+    case (int32_t)MD_CPU_ARCHITECTURE_MIPS:
+    case (int32_t)MD_CPU_ARCHITECTURE_PPC:
+    case (int32_t)MD_CPU_ARCHITECTURE_SHX:
+    case (int32_t)MD_CPU_ARCHITECTURE_ARM:
+    case (int32_t)MD_CPU_ARCHITECTURE_X86_WIN64:
       // 32-bit architectures, mask the upper bits.
       return raw_address & 0xffffffffULL;
 
@@ -564,8 +564,8 @@ bool MinidumpProcessor::GetCPUInfo(Minidump* dump, SystemInfo* info) {
     return false;
 
   switch (raw_system_info->processor_architecture) {
-    case MD_CPU_ARCHITECTURE_X86:
-    case MD_CPU_ARCHITECTURE_AMD64: {
+    case (int32_t)MD_CPU_ARCHITECTURE_X86:
+    case (int32_t)MD_CPU_ARCHITECTURE_AMD64: {
       if (raw_system_info->processor_architecture == MD_CPU_ARCHITECTURE_X86)
         info->cpu = "x86";
       else
@@ -586,48 +586,48 @@ bool MinidumpProcessor::GetCPUInfo(Minidump* dump, SystemInfo* info) {
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_PPC: {
+    case (int32_t)MD_CPU_ARCHITECTURE_PPC: {
       info->cpu = "ppc";
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_PPC64: {
+    case (int32_t)MD_CPU_ARCHITECTURE_PPC64: {
       info->cpu = "ppc64";
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_SPARC: {
+    case (int32_t)MD_CPU_ARCHITECTURE_SPARC: {
       info->cpu = "sparc";
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_ARM: {
+    case (int32_t)MD_CPU_ARCHITECTURE_ARM: {
       info->cpu = "arm";
       GetARMCpuInfo(raw_system_info, &info->cpu_info);
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_ARM64:
-    case MD_CPU_ARCHITECTURE_ARM64_OLD: {
+    case (int32_t)MD_CPU_ARCHITECTURE_ARM64:
+    case (int32_t)MD_CPU_ARCHITECTURE_ARM64_OLD: {
       info->cpu = "arm64";
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_MIPS: {
+    case (int32_t)MD_CPU_ARCHITECTURE_MIPS: {
       info->cpu = "mips";
       break;
     }
-    case MD_CPU_ARCHITECTURE_MIPS64: {
+    case (int32_t)MD_CPU_ARCHITECTURE_MIPS64: {
       info->cpu = "mips64";
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_RISCV: {
+    case (int32_t)MD_CPU_ARCHITECTURE_RISCV: {
       info->cpu = "riscv";
       break;
     }
 
-    case MD_CPU_ARCHITECTURE_RISCV64: {
+    case (int32_t)MD_CPU_ARCHITECTURE_RISCV64: {
       info->cpu = "riscv64";
       break;
     }
@@ -664,52 +664,52 @@ bool MinidumpProcessor::GetOSInfo(Minidump* dump, SystemInfo* info) {
   info->os_short = system_info->GetOS();
 
   switch (raw_system_info->platform_id) {
-    case MD_OS_WIN32_NT: {
+    case (int32_t)MD_OS_WIN32_NT: {
       info->os = "Windows NT";
       break;
     }
 
-    case MD_OS_WIN32_WINDOWS: {
+    case (int32_t)MD_OS_WIN32_WINDOWS: {
       info->os = "Windows";
       break;
     }
 
-    case MD_OS_MAC_OS_X: {
+    case (int32_t)MD_OS_MAC_OS_X: {
       info->os = "Mac OS X";
       break;
     }
 
-    case MD_OS_IOS: {
+    case (int32_t)MD_OS_IOS: {
       info->os = "iOS";
       break;
     }
 
-    case MD_OS_LINUX: {
+    case (int32_t)MD_OS_LINUX: {
       info->os = "Linux";
       break;
     }
 
-    case MD_OS_SOLARIS: {
+    case (int32_t)MD_OS_SOLARIS: {
       info->os = "Solaris";
       break;
     }
 
-    case MD_OS_ANDROID: {
+    case (int32_t)MD_OS_ANDROID: {
       info->os = "Android";
       break;
     }
 
-    case MD_OS_PS3: {
+    case (int32_t)MD_OS_PS3: {
       info->os = "PS3";
       break;
     }
 
-    case MD_OS_NACL: {
+    case (int32_t)MD_OS_NACL: {
       info->os = "NaCl";
       break;
     }
 
-    case MD_OS_FUCHSIA: {
+    case (int32_t)MD_OS_FUCHSIA: {
       info->os = "Fuchsia";
       break;
     }
@@ -874,45 +874,45 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
     return reason;
 
   switch (raw_system_info->platform_id) {
-    case MD_OS_FUCHSIA: {
+    case (int32_t)MD_OS_FUCHSIA: {
       switch (exception_code) {
-        case MD_EXCEPTION_CODE_FUCHSIA_GENERAL:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_GENERAL:
           reason = "GENERAL / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_FATAL_PAGE_FAULT:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_FATAL_PAGE_FAULT:
           reason = "FATAL_PAGE_FAULT / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_UNDEFINED_INSTRUCTION:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_UNDEFINED_INSTRUCTION:
           reason = "UNDEFINED_INSTRUCTION / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_SW_BREAKPOINT:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_SW_BREAKPOINT:
           reason = "SW_BREAKPOINT / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_HW_BREAKPOINT:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_HW_BREAKPOINT:
           reason = "HW_BREAKPOINT / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_UNALIGNED_ACCESS:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_UNALIGNED_ACCESS:
           reason = "UNALIGNED_ACCESS / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_THREAD_STARTING:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_THREAD_STARTING:
           reason = "THREAD_STARTING / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_THREAD_EXITING:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_THREAD_EXITING:
           reason = "THREAD_EXITING / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_POLICY_ERROR:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_POLICY_ERROR:
           reason = "POLICY_ERROR / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_CODE_FUCHSIA_PROCESS_STARTING:
+        case (int32_t)MD_EXCEPTION_CODE_FUCHSIA_PROCESS_STARTING:
           reason = "PROCESS_STARTING / ";
           reason.append(flags_string);
           break;
@@ -922,28 +922,28 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
       break;
     }
 
-    case MD_OS_MAC_OS_X:
-    case MD_OS_IOS: {
+    case (int32_t)MD_OS_MAC_OS_X:
+    case (int32_t)MD_OS_IOS: {
       switch (exception_code) {
-        case MD_EXCEPTION_MAC_BAD_ACCESS:
+        case (int32_t)MD_EXCEPTION_MAC_BAD_ACCESS:
           reason = "EXC_BAD_ACCESS / ";
           switch (exception_flags) {
-            case MD_EXCEPTION_CODE_MAC_INVALID_ADDRESS:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_INVALID_ADDRESS:
               reason.append("KERN_INVALID_ADDRESS");
               break;
-            case MD_EXCEPTION_CODE_MAC_PROTECTION_FAILURE:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_PROTECTION_FAILURE:
               reason.append("KERN_PROTECTION_FAILURE");
               break;
-            case MD_EXCEPTION_CODE_MAC_NO_ACCESS:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_NO_ACCESS:
               reason.append("KERN_NO_ACCESS");
               break;
-            case MD_EXCEPTION_CODE_MAC_MEMORY_FAILURE:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_MEMORY_FAILURE:
               reason.append("KERN_MEMORY_FAILURE");
               break;
-            case MD_EXCEPTION_CODE_MAC_MEMORY_ERROR:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_MEMORY_ERROR:
               reason.append("KERN_MEMORY_ERROR");
               break;
-            case MD_EXCEPTION_CODE_MAC_CODESIGN_ERROR:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_CODESIGN_ERROR:
               reason.append("KERN_CODESIGN_ERROR");
               break;
             default:
@@ -953,10 +953,10 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
                   raw_system_info->processor_architecture ==
                       MD_CPU_ARCHITECTURE_ARM64_OLD) {
                 switch (exception_flags) {
-                  case MD_EXCEPTION_CODE_MAC_ARM_DA_ALIGN:
+                  case (int32_t)MD_EXCEPTION_CODE_MAC_ARM_DA_ALIGN:
                     reason.append("EXC_ARM_DA_ALIGN");
                     break;
-                  case MD_EXCEPTION_CODE_MAC_ARM_DA_DEBUG:
+                  case (int32_t)MD_EXCEPTION_CODE_MAC_ARM_DA_DEBUG:
                     reason.append("EXC_ARM_DA_DEBUG");
                     break;
                   default:
@@ -967,13 +967,13 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               } else if (raw_system_info->processor_architecture ==
                          MD_CPU_ARCHITECTURE_PPC) {
                 switch (exception_flags) {
-                  case MD_EXCEPTION_CODE_MAC_PPC_VM_PROT_READ:
+                  case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_VM_PROT_READ:
                     reason.append("EXC_PPC_VM_PROT_READ");
                     break;
-                  case MD_EXCEPTION_CODE_MAC_PPC_BADSPACE:
+                  case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_BADSPACE:
                     reason.append("EXC_PPC_BADSPACE");
                     break;
-                  case MD_EXCEPTION_CODE_MAC_PPC_UNALIGNED:
+                  case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_UNALIGNED:
                     reason.append("EXC_PPC_UNALIGNED");
                     break;
                   default:
@@ -986,7 +986,8 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
                          raw_system_info->processor_architecture ==
                              MD_CPU_ARCHITECTURE_AMD64) {
                 switch (exception_flags) {
-                  case MD_EXCEPTION_CODE_MAC_X86_GENERAL_PROTECTION_FAULT:
+                  case (int32_t)
+                      MD_EXCEPTION_CODE_MAC_X86_GENERAL_PROTECTION_FAULT:
                     reason.append("EXC_I386_GPFLT");
                     break;
                   default:
@@ -1001,13 +1002,13 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_MAC_BAD_INSTRUCTION:
+        case (int32_t)MD_EXCEPTION_MAC_BAD_INSTRUCTION:
           reason = "EXC_BAD_INSTRUCTION / ";
           switch (raw_system_info->processor_architecture) {
-            case MD_CPU_ARCHITECTURE_ARM:
-            case MD_CPU_ARCHITECTURE_ARM64_OLD: {
+            case (int32_t)MD_CPU_ARCHITECTURE_ARM:
+            case (int32_t)MD_CPU_ARCHITECTURE_ARM64_OLD: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_ARM_UNDEFINED:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_ARM_UNDEFINED:
                   reason.append("EXC_ARM_UNDEFINED");
                   break;
                 default:
@@ -1017,24 +1018,25 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               }
               break;
             }
-            case MD_CPU_ARCHITECTURE_PPC: {
+            case (int32_t)MD_CPU_ARCHITECTURE_PPC: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_PPC_INVALID_SYSCALL:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_INVALID_SYSCALL:
                   reason.append("EXC_PPC_INVALID_SYSCALL");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_UNIMPLEMENTED_INSTRUCTION:
+                case (
+                    int32_t)MD_EXCEPTION_CODE_MAC_PPC_UNIMPLEMENTED_INSTRUCTION:
                   reason.append("EXC_PPC_UNIPL_INST");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_PRIVILEGED_INSTRUCTION:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_PRIVILEGED_INSTRUCTION:
                   reason.append("EXC_PPC_PRIVINST");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_PRIVILEGED_REGISTER:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_PRIVILEGED_REGISTER:
                   reason.append("EXC_PPC_PRIVREG");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_TRACE:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_TRACE:
                   reason.append("EXC_PPC_TRACE");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_PERFORMANCE_MONITOR:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_PERFORMANCE_MONITOR:
                   reason.append("EXC_PPC_PERFMON");
                   break;
                 default:
@@ -1044,25 +1046,27 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               }
               break;
             }
-            case MD_CPU_ARCHITECTURE_AMD64:
-            case MD_CPU_ARCHITECTURE_X86: {
+            case (int32_t)MD_CPU_ARCHITECTURE_AMD64:
+            case (int32_t)MD_CPU_ARCHITECTURE_X86: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_X86_INVALID_OPERATION:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_INVALID_OPERATION:
                   reason.append("EXC_I386_INVOP");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_INVALID_TASK_STATE_SEGMENT:
+                case (int32_t)
+                    MD_EXCEPTION_CODE_MAC_X86_INVALID_TASK_STATE_SEGMENT:
                   reason.append("EXC_I386_INVTSSFLT");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_SEGMENT_NOT_PRESENT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_SEGMENT_NOT_PRESENT:
                   reason.append("EXC_I386_SEGNPFLT");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_STACK_FAULT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_STACK_FAULT:
                   reason.append("EXC_I386_STKFLT");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_GENERAL_PROTECTION_FAULT:
+                case (
+                    int32_t)MD_EXCEPTION_CODE_MAC_X86_GENERAL_PROTECTION_FAULT:
                   reason.append("EXC_I386_GPFLT");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_ALIGNMENT_FAULT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_ALIGNMENT_FAULT:
                   reason.append("EXC_I386_ALIGNFLT");
                   break;
                 default:
@@ -1078,36 +1082,36 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_MAC_ARITHMETIC:
+        case (int32_t)MD_EXCEPTION_MAC_ARITHMETIC:
           reason = "EXC_ARITHMETIC / ";
           switch (raw_system_info->processor_architecture) {
-            case MD_CPU_ARCHITECTURE_PPC: {
+            case (int32_t)MD_CPU_ARCHITECTURE_PPC: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_PPC_OVERFLOW:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_OVERFLOW:
                   reason.append("EXC_PPC_OVERFLOW");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_ZERO_DIVIDE:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_ZERO_DIVIDE:
                   reason.append("EXC_PPC_ZERO_DIVIDE");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_FLOAT_INEXACT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_FLOAT_INEXACT:
                   reason.append("EXC_FLT_INEXACT");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_FLOAT_ZERO_DIVIDE:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_FLOAT_ZERO_DIVIDE:
                   reason.append("EXC_PPC_FLT_ZERO_DIVIDE");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_FLOAT_UNDERFLOW:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_FLOAT_UNDERFLOW:
                   reason.append("EXC_PPC_FLT_UNDERFLOW");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_FLOAT_OVERFLOW:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_FLOAT_OVERFLOW:
                   reason.append("EXC_PPC_FLT_OVERFLOW");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_FLOAT_NOT_A_NUMBER:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_FLOAT_NOT_A_NUMBER:
                   reason.append("EXC_PPC_FLT_NOT_A_NUMBER");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_NO_EMULATION:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_NO_EMULATION:
                   reason.append("EXC_PPC_NOEMULATION");
                   break;
-                case MD_EXCEPTION_CODE_MAC_PPC_ALTIVEC_ASSIST:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_ALTIVEC_ASSIST:
                   reason.append("EXC_PPC_ALTIVECASSIST");
                   break;
                 default:
@@ -1117,31 +1121,31 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               }
               break;
             }
-            case MD_CPU_ARCHITECTURE_AMD64:
-            case MD_CPU_ARCHITECTURE_X86: {
+            case (int32_t)MD_CPU_ARCHITECTURE_AMD64:
+            case (int32_t)MD_CPU_ARCHITECTURE_X86: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_X86_DIV:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_DIV:
                   reason.append("EXC_I386_DIV");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_INTO:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_INTO:
                   reason.append("EXC_I386_INTO");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_NOEXT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_NOEXT:
                   reason.append("EXC_I386_NOEXT");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_EXTOVR:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_EXTOVR:
                   reason.append("EXC_I386_EXTOVR");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_EXTERR:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_EXTERR:
                   reason.append("EXC_I386_EXTERR");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_EMERR:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_EMERR:
                   reason.append("EXC_I386_EMERR");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_BOUND:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_BOUND:
                   reason.append("EXC_I386_BOUND");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_SSEEXTERR:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_SSEEXTERR:
                   reason.append("EXC_I386_SSEEXTERR");
                   break;
                 default:
@@ -1157,25 +1161,25 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_MAC_EMULATION:
+        case (int32_t)MD_EXCEPTION_MAC_EMULATION:
           reason = "EXC_EMULATION / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_MAC_SOFTWARE:
+        case (int32_t)MD_EXCEPTION_MAC_SOFTWARE:
           reason = "EXC_SOFTWARE / ";
           switch (int32_t(exception_flags)) {
-            case MD_EXCEPTION_CODE_MAC_ABORT:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_ABORT:
               reason.append("SIGABRT");
               break;
-            case MD_EXCEPTION_CODE_MAC_NS_EXCEPTION:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_NS_EXCEPTION:
               reason.append("UNCAUGHT_NS_EXCEPTION");
               break;
             // These are ppc only but shouldn't be a problem as they're
             // unused on x86
-            case MD_EXCEPTION_CODE_MAC_PPC_TRAP:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_TRAP:
               reason.append("EXC_PPC_TRAP");
               break;
-            case MD_EXCEPTION_CODE_MAC_PPC_MIGRATE:
+            case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_MIGRATE:
               reason.append("EXC_PPC_MIGRATE");
               break;
             default:
@@ -1184,19 +1188,19 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_MAC_BREAKPOINT:
+        case (int32_t)MD_EXCEPTION_MAC_BREAKPOINT:
           reason = "EXC_BREAKPOINT / ";
           switch (raw_system_info->processor_architecture) {
-            case MD_CPU_ARCHITECTURE_ARM:
-            case MD_CPU_ARCHITECTURE_ARM64_OLD: {
+            case (int32_t)MD_CPU_ARCHITECTURE_ARM:
+            case (int32_t)MD_CPU_ARCHITECTURE_ARM64_OLD: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_ARM_DA_ALIGN:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_ARM_DA_ALIGN:
                   reason.append("EXC_ARM_DA_ALIGN");
                   break;
-                case MD_EXCEPTION_CODE_MAC_ARM_DA_DEBUG:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_ARM_DA_DEBUG:
                   reason.append("EXC_ARM_DA_DEBUG");
                   break;
-                case MD_EXCEPTION_CODE_MAC_ARM_BREAKPOINT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_ARM_BREAKPOINT:
                   reason.append("EXC_ARM_BREAKPOINT");
                   break;
                 default:
@@ -1206,9 +1210,9 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               }
               break;
             }
-            case MD_CPU_ARCHITECTURE_PPC: {
+            case (int32_t)MD_CPU_ARCHITECTURE_PPC: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_PPC_BREAKPOINT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_PPC_BREAKPOINT:
                   reason.append("EXC_PPC_BREAKPOINT");
                   break;
                 default:
@@ -1218,13 +1222,13 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               }
               break;
             }
-            case MD_CPU_ARCHITECTURE_AMD64:
-            case MD_CPU_ARCHITECTURE_X86: {
+            case (int32_t)MD_CPU_ARCHITECTURE_AMD64:
+            case (int32_t)MD_CPU_ARCHITECTURE_X86: {
               switch (exception_flags) {
-                case MD_EXCEPTION_CODE_MAC_X86_SGL:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_SGL:
                   reason.append("EXC_I386_SGL");
                   break;
-                case MD_EXCEPTION_CODE_MAC_X86_BPT:
+                case (int32_t)MD_EXCEPTION_CODE_MAC_X86_BPT:
                   reason.append("EXC_I386_BPT");
                   break;
                 default:
@@ -1240,55 +1244,55 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_MAC_SYSCALL:
+        case (int32_t)MD_EXCEPTION_MAC_SYSCALL:
           reason = "EXC_SYSCALL / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_MAC_MACH_SYSCALL:
+        case (int32_t)MD_EXCEPTION_MAC_MACH_SYSCALL:
           reason = "EXC_MACH_SYSCALL / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_MAC_RPC_ALERT:
+        case (int32_t)MD_EXCEPTION_MAC_RPC_ALERT:
           reason = "EXC_RPC_ALERT / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_MAC_RESOURCE:
+        case (int32_t)MD_EXCEPTION_MAC_RESOURCE:
           reason = "EXC_RESOURCE / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_MAC_GUARD:
+        case (int32_t)MD_EXCEPTION_MAC_GUARD:
           reason = "EXC_GUARD / ";
           reason.append(flags_string);
           break;
-        case MD_EXCEPTION_MAC_SIMULATED:
+        case (int32_t)MD_EXCEPTION_MAC_SIMULATED:
           reason = "Simulated Exception";
           break;
-        case MD_NS_EXCEPTION_SIMULATED:
+        case (int32_t)MD_NS_EXCEPTION_SIMULATED:
           reason = "Uncaught NSException";
           break;
       }
       break;
     }
 
-    case MD_OS_WIN32_NT:
-    case MD_OS_WIN32_WINDOWS: {
+    case (int32_t)MD_OS_WIN32_NT:
+    case (int32_t)MD_OS_WIN32_WINDOWS: {
       switch (int32_t(exception_code)) {
-        case MD_EXCEPTION_CODE_WIN_CONTROL_C:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_CONTROL_C:
           reason = "DBG_CONTROL_C";
           break;
-        case MD_EXCEPTION_CODE_WIN_GUARD_PAGE_VIOLATION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_GUARD_PAGE_VIOLATION:
           reason = "EXCEPTION_GUARD_PAGE";
           break;
-        case MD_EXCEPTION_CODE_WIN_DATATYPE_MISALIGNMENT:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_DATATYPE_MISALIGNMENT:
           reason = "EXCEPTION_DATATYPE_MISALIGNMENT";
           break;
-        case MD_EXCEPTION_CODE_WIN_BREAKPOINT:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_BREAKPOINT:
           reason = "EXCEPTION_BREAKPOINT";
           break;
-        case MD_EXCEPTION_CODE_WIN_SINGLE_STEP:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_SINGLE_STEP:
           reason = "EXCEPTION_SINGLE_STEP";
           break;
-        case MD_EXCEPTION_CODE_WIN_ACCESS_VIOLATION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_ACCESS_VIOLATION:
           // For EXCEPTION_ACCESS_VIOLATION, Windows puts the address that
           // caused the fault in exception_information[1].
           // exception_information[0] is 0 if the violation was caused by
@@ -1301,13 +1305,13 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
                 static_cast<MDAccessViolationTypeWin>(
                     raw_exception->exception_record.exception_information[0]);
             switch (av_type) {
-              case MD_ACCESS_VIOLATION_WIN_READ:
+              case (int32_t)MD_ACCESS_VIOLATION_WIN_READ:
                 reason = "EXCEPTION_ACCESS_VIOLATION_READ";
                 break;
-              case MD_ACCESS_VIOLATION_WIN_WRITE:
+              case (int32_t)MD_ACCESS_VIOLATION_WIN_WRITE:
                 reason = "EXCEPTION_ACCESS_VIOLATION_WRITE";
                 break;
-              case MD_ACCESS_VIOLATION_WIN_EXEC:
+              case (int32_t)MD_ACCESS_VIOLATION_WIN_EXEC:
                 reason = "EXCEPTION_ACCESS_VIOLATION_EXEC";
                 break;
               default:
@@ -1322,7 +1326,7 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
             *address = raw_exception->exception_record.exception_information[1];
           }
           break;
-        case MD_EXCEPTION_CODE_WIN_IN_PAGE_ERROR:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_IN_PAGE_ERROR:
           // For EXCEPTION_IN_PAGE_ERROR, Windows puts the address that
           // caused the fault in exception_information[1].
           // exception_information[0] is 0 if the violation was caused by
@@ -1336,13 +1340,13 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
             MDInPageErrorTypeWin av_type = static_cast<MDInPageErrorTypeWin>(
                 raw_exception->exception_record.exception_information[0]);
             switch (av_type) {
-              case MD_IN_PAGE_ERROR_WIN_READ:
+              case (int32_t)MD_IN_PAGE_ERROR_WIN_READ:
                 reason = "EXCEPTION_IN_PAGE_ERROR_READ";
                 break;
-              case MD_IN_PAGE_ERROR_WIN_WRITE:
+              case (int32_t)MD_IN_PAGE_ERROR_WIN_WRITE:
                 reason = "EXCEPTION_IN_PAGE_ERROR_WRITE";
                 break;
-              case MD_IN_PAGE_ERROR_WIN_EXEC:
+              case (int32_t)MD_IN_PAGE_ERROR_WIN_EXEC:
                 reason = "EXCEPTION_IN_PAGE_ERROR_EXEC";
                 break;
               default:
@@ -1363,266 +1367,266 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
             reason.append(NTStatusToString(ntstatus));
           }
           break;
-        case MD_EXCEPTION_CODE_WIN_INVALID_HANDLE:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_INVALID_HANDLE:
           reason = "EXCEPTION_INVALID_HANDLE";
           break;
-        case MD_EXCEPTION_CODE_WIN_ILLEGAL_INSTRUCTION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_ILLEGAL_INSTRUCTION:
           reason = "EXCEPTION_ILLEGAL_INSTRUCTION";
           break;
-        case MD_EXCEPTION_CODE_WIN_NONCONTINUABLE_EXCEPTION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_NONCONTINUABLE_EXCEPTION:
           reason = "EXCEPTION_NONCONTINUABLE_EXCEPTION";
           break;
-        case MD_EXCEPTION_CODE_WIN_INVALID_DISPOSITION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_INVALID_DISPOSITION:
           reason = "EXCEPTION_INVALID_DISPOSITION";
           break;
-        case MD_EXCEPTION_CODE_WIN_ARRAY_BOUNDS_EXCEEDED:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_ARRAY_BOUNDS_EXCEEDED:
           reason = "EXCEPTION_BOUNDS_EXCEEDED";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_DENORMAL_OPERAND:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_DENORMAL_OPERAND:
           reason = "EXCEPTION_FLT_DENORMAL_OPERAND";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_DIVIDE_BY_ZERO:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_DIVIDE_BY_ZERO:
           reason = "EXCEPTION_FLT_DIVIDE_BY_ZERO";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_INEXACT_RESULT:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_INEXACT_RESULT:
           reason = "EXCEPTION_FLT_INEXACT_RESULT";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_INVALID_OPERATION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_INVALID_OPERATION:
           reason = "EXCEPTION_FLT_INVALID_OPERATION";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_OVERFLOW:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_OVERFLOW:
           reason = "EXCEPTION_FLT_OVERFLOW";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_STACK_CHECK:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_STACK_CHECK:
           reason = "EXCEPTION_FLT_STACK_CHECK";
           break;
-        case MD_EXCEPTION_CODE_WIN_FLOAT_UNDERFLOW:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_FLOAT_UNDERFLOW:
           reason = "EXCEPTION_FLT_UNDERFLOW";
           break;
-        case MD_EXCEPTION_CODE_WIN_INTEGER_DIVIDE_BY_ZERO:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_INTEGER_DIVIDE_BY_ZERO:
           reason = "EXCEPTION_INT_DIVIDE_BY_ZERO";
           break;
-        case MD_EXCEPTION_CODE_WIN_INTEGER_OVERFLOW:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_INTEGER_OVERFLOW:
           reason = "EXCEPTION_INT_OVERFLOW";
           break;
-        case MD_EXCEPTION_CODE_WIN_PRIVILEGED_INSTRUCTION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_PRIVILEGED_INSTRUCTION:
           reason = "EXCEPTION_PRIV_INSTRUCTION";
           break;
-        case MD_EXCEPTION_CODE_WIN_STACK_OVERFLOW:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_STACK_OVERFLOW:
           reason = "EXCEPTION_STACK_OVERFLOW";
           break;
-        case MD_EXCEPTION_CODE_WIN_BAD_FUNCTION_TABLE:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_BAD_FUNCTION_TABLE:
           reason = "EXCEPTION_BAD_FUNCTION_TABLE";
           break;
-        case MD_EXCEPTION_CODE_WIN_POSSIBLE_DEADLOCK:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_POSSIBLE_DEADLOCK:
           reason = "EXCEPTION_POSSIBLE_DEADLOCK";
           break;
-        case MD_EXCEPTION_CODE_WIN_STACK_BUFFER_OVERRUN:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_STACK_BUFFER_OVERRUN:
           if (raw_exception->exception_record.number_parameters >= 1) {
             MDFastFailSubcodeTypeWin subcode =
                 static_cast<MDFastFailSubcodeTypeWin>(
                     raw_exception->exception_record.exception_information[0]);
             switch (subcode) {
               // Note - we skip the '0'/GS case as it exists for legacy reasons.
-              case MD_FAST_FAIL_VTGUARD_CHECK_FAILURE:
+              case (int32_t)MD_FAST_FAIL_VTGUARD_CHECK_FAILURE:
                 reason = "FAST_FAIL_VTGUARD_CHECK_FAILURE";
                 break;
-              case MD_FAST_FAIL_STACK_COOKIE_CHECK_FAILURE:
+              case (int32_t)MD_FAST_FAIL_STACK_COOKIE_CHECK_FAILURE:
                 reason = "FAST_FAIL_STACK_COOKIE_CHECK_FAILURE";
                 break;
-              case MD_FAST_FAIL_CORRUPT_LIST_ENTRY:
+              case (int32_t)MD_FAST_FAIL_CORRUPT_LIST_ENTRY:
                 reason = "FAST_FAIL_CORRUPT_LIST_ENTRY";
                 break;
-              case MD_FAST_FAIL_INCORRECT_STACK:
+              case (int32_t)MD_FAST_FAIL_INCORRECT_STACK:
                 reason = "FAST_FAIL_INCORRECT_STACK";
                 break;
-              case MD_FAST_FAIL_INVALID_ARG:
+              case (int32_t)MD_FAST_FAIL_INVALID_ARG:
                 reason = "FAST_FAIL_INVALID_ARG";
                 break;
-              case MD_FAST_FAIL_GS_COOKIE_INIT:
+              case (int32_t)MD_FAST_FAIL_GS_COOKIE_INIT:
                 reason = "FAST_FAIL_GS_COOKIE_INIT";
                 break;
-              case MD_FAST_FAIL_FATAL_APP_EXIT:
+              case (int32_t)MD_FAST_FAIL_FATAL_APP_EXIT:
                 reason = "FAST_FAIL_FATAL_APP_EXIT";
                 break;
-              case MD_FAST_FAIL_RANGE_CHECK_FAILURE:
+              case (int32_t)MD_FAST_FAIL_RANGE_CHECK_FAILURE:
                 reason = "FAST_FAIL_RANGE_CHECK_FAILURE";
                 break;
-              case MD_FAST_FAIL_UNSAFE_REGISTRY_ACCESS:
+              case (int32_t)MD_FAST_FAIL_UNSAFE_REGISTRY_ACCESS:
                 reason = "FAST_FAIL_UNSAFE_REGISTRY_ACCESS";
                 break;
-              case MD_FAST_FAIL_GUARD_ICALL_CHECK_FAILURE:
+              case (int32_t)MD_FAST_FAIL_GUARD_ICALL_CHECK_FAILURE:
                 reason = "FAST_FAIL_GUARD_ICALL_CHECK_FAILURE";
                 break;
-              case MD_FAST_FAIL_GUARD_WRITE_CHECK_FAILURE:
+              case (int32_t)MD_FAST_FAIL_GUARD_WRITE_CHECK_FAILURE:
                 reason = "FAST_FAIL_GUARD_WRITE_CHECK_FAILURE";
                 break;
-              case MD_FAST_FAIL_INVALID_FIBER_SWITCH:
+              case (int32_t)MD_FAST_FAIL_INVALID_FIBER_SWITCH:
                 reason = "FAST_FAIL_INVALID_FIBER_SWITCH";
                 break;
-              case MD_FAST_FAIL_INVALID_SET_OF_CONTEXT:
+              case (int32_t)MD_FAST_FAIL_INVALID_SET_OF_CONTEXT:
                 reason = "FAST_FAIL_INVALID_SET_OF_CONTEXT";
                 break;
-              case MD_FAST_FAIL_INVALID_REFERENCE_COUNT:
+              case (int32_t)MD_FAST_FAIL_INVALID_REFERENCE_COUNT:
                 reason = "FAST_FAIL_INVALID_REFERENCE_COUNT";
                 break;
-              case MD_FAST_FAIL_INVALID_JUMP_BUFFER:
+              case (int32_t)MD_FAST_FAIL_INVALID_JUMP_BUFFER:
                 reason = "FAST_FAIL_INVALID_JUMP_BUFFER";
                 break;
-              case MD_FAST_FAIL_MRDATA_MODIFIED:
+              case (int32_t)MD_FAST_FAIL_MRDATA_MODIFIED:
                 reason = "FAST_FAIL_MRDATA_MODIFIED";
                 break;
-              case MD_FAST_FAIL_CERTIFICATION_FAILURE:
+              case (int32_t)MD_FAST_FAIL_CERTIFICATION_FAILURE:
                 reason = "FAST_FAIL_CERTIFICATION_FAILURE";
                 break;
-              case MD_FAST_FAIL_INVALID_EXCEPTION_CHAIN:
+              case (int32_t)MD_FAST_FAIL_INVALID_EXCEPTION_CHAIN:
                 reason = "FAST_FAIL_INVALID_EXCEPTION_CHAIN";
                 break;
-              case MD_FAST_FAIL_CRYPTO_LIBRARY:
+              case (int32_t)MD_FAST_FAIL_CRYPTO_LIBRARY:
                 reason = "FAST_FAIL_CRYPTO_LIBRARY";
                 break;
-              case MD_FAST_FAIL_INVALID_CALL_IN_DLL_CALLOUT:
+              case (int32_t)MD_FAST_FAIL_INVALID_CALL_IN_DLL_CALLOUT:
                 reason = "FAST_FAIL_INVALID_CALL_IN_DLL_CALLOUT";
                 break;
-              case MD_FAST_FAIL_INVALID_IMAGE_BASE:
+              case (int32_t)MD_FAST_FAIL_INVALID_IMAGE_BASE:
                 reason = "FAST_FAIL_INVALID_IMAGE_BASE";
                 break;
-              case MD_FAST_FAIL_DLOAD_PROTECTION_FAILURE:
+              case (int32_t)MD_FAST_FAIL_DLOAD_PROTECTION_FAILURE:
                 reason = "FAST_FAIL_DLOAD_PROTECTION_FAILURE";
                 break;
-              case MD_FAST_FAIL_UNSAFE_EXTENSION_CALL:
+              case (int32_t)MD_FAST_FAIL_UNSAFE_EXTENSION_CALL:
                 reason = "FAST_FAIL_UNSAFE_EXTENSION_CALL";
                 break;
-              case MD_FAST_FAIL_DEPRECATED_SERVICE_INVOKED:
+              case (int32_t)MD_FAST_FAIL_DEPRECATED_SERVICE_INVOKED:
                 reason = "FAST_FAIL_DEPRECATED_SERVICE_INVOKED";
                 break;
-              case MD_FAST_FAIL_INVALID_BUFFER_ACCESS:
+              case (int32_t)MD_FAST_FAIL_INVALID_BUFFER_ACCESS:
                 reason = "FAST_FAIL_INVALID_BUFFER_ACCESS";
                 break;
-              case MD_FAST_FAIL_INVALID_BALANCED_TREE:
+              case (int32_t)MD_FAST_FAIL_INVALID_BALANCED_TREE:
                 reason = "FAST_FAIL_INVALID_BALANCED_TREE";
                 break;
-              case MD_FAST_FAIL_INVALID_NEXT_THREAD:
+              case (int32_t)MD_FAST_FAIL_INVALID_NEXT_THREAD:
                 reason = "FAST_FAIL_INVALID_NEXT_THREAD";
                 break;
-              case MD_FAST_FAIL_GUARD_ICALL_CHECK_SUPPRESSED:
+              case (int32_t)MD_FAST_FAIL_GUARD_ICALL_CHECK_SUPPRESSED:
                 reason = "FAST_FAIL_GUARD_ICALL_CHECK_SUPPRESSED";
                 break;
-              case MD_FAST_FAIL_APCS_DISABLED:
+              case (int32_t)MD_FAST_FAIL_APCS_DISABLED:
                 reason = "FAST_FAIL_APCS_DISABLED";
                 break;
-              case MD_FAST_FAIL_INVALID_IDLE_STATE:
+              case (int32_t)MD_FAST_FAIL_INVALID_IDLE_STATE:
                 reason = "FAST_FAIL_INVALID_IDLE_STATE";
                 break;
-              case MD_FAST_FAIL_MRDATA_PROTECTION_FAILURE:
+              case (int32_t)MD_FAST_FAIL_MRDATA_PROTECTION_FAILURE:
                 reason = "FAST_FAIL_MRDATA_PROTECTION_FAILURE";
                 break;
-              case MD_FAST_FAIL_UNEXPECTED_HEAP_EXCEPTION:
+              case (int32_t)MD_FAST_FAIL_UNEXPECTED_HEAP_EXCEPTION:
                 reason = "FAST_FAIL_UNEXPECTED_HEAP_EXCEPTION";
                 break;
-              case MD_FAST_FAIL_INVALID_LOCK_STATE:
+              case (int32_t)MD_FAST_FAIL_INVALID_LOCK_STATE:
                 reason = "FAST_FAIL_INVALID_LOCK_STATE";
                 break;
-              case MD_FAST_FAIL_GUARD_JUMPTABLE:
+              case (int32_t)MD_FAST_FAIL_GUARD_JUMPTABLE:
                 reason = "FAST_FAIL_GUARD_JUMPTABLE";
                 break;
-              case MD_FAST_FAIL_INVALID_LONGJUMP_TARGET:
+              case (int32_t)MD_FAST_FAIL_INVALID_LONGJUMP_TARGET:
                 reason = "FAST_FAIL_INVALID_LONGJUMP_TARGET";
                 break;
-              case MD_FAST_FAIL_INVALID_DISPATCH_CONTEXT:
+              case (int32_t)MD_FAST_FAIL_INVALID_DISPATCH_CONTEXT:
                 reason = "FAST_FAIL_INVALID_DISPATCH_CONTEXT";
                 break;
-              case MD_FAST_FAIL_INVALID_THREAD:
+              case (int32_t)MD_FAST_FAIL_INVALID_THREAD:
                 reason = "FAST_FAIL_INVALID_THREAD";
                 break;
-              case MD_FAST_FAIL_INVALID_SYSCALL_NUMBER:
+              case (int32_t)MD_FAST_FAIL_INVALID_SYSCALL_NUMBER:
                 reason = "FAST_FAIL_INVALID_SYSCALL_NUMBER";
                 break;
-              case MD_FAST_FAIL_INVALID_FILE_OPERATION:
+              case (int32_t)MD_FAST_FAIL_INVALID_FILE_OPERATION:
                 reason = "FAST_FAIL_INVALID_FILE_OPERATION";
                 break;
-              case MD_FAST_FAIL_LPAC_ACCESS_DENIED:
+              case (int32_t)MD_FAST_FAIL_LPAC_ACCESS_DENIED:
                 reason = "FAST_FAIL_LPAC_ACCESS_DENIED";
                 break;
-              case MD_FAST_FAIL_GUARD_SS_FAILURE:
+              case (int32_t)MD_FAST_FAIL_GUARD_SS_FAILURE:
                 reason = "FAST_FAIL_GUARD_SS_FAILURE";
                 break;
-              case MD_FAST_FAIL_LOADER_CONTINUITY_FAILURE:
+              case (int32_t)MD_FAST_FAIL_LOADER_CONTINUITY_FAILURE:
                 reason = "FAST_FAIL_LOADER_CONTINUITY_FAILURE";
                 break;
-              case MD_FAST_FAIL_GUARD_EXPORT_SUPPRESSION_FAILURE:
+              case (int32_t)MD_FAST_FAIL_GUARD_EXPORT_SUPPRESSION_FAILURE:
                 reason = "FAST_FAIL_GUARD_EXPORT_SUPPRESSION_FAILURE";
                 break;
-              case MD_FAST_FAIL_INVALID_CONTROL_STACK:
+              case (int32_t)MD_FAST_FAIL_INVALID_CONTROL_STACK:
                 reason = "FAST_FAIL_INVALID_CONTROL_STACK";
                 break;
-              case MD_FAST_FAIL_SET_CONTEXT_DENIED:
+              case (int32_t)MD_FAST_FAIL_SET_CONTEXT_DENIED:
                 reason = "FAST_FAIL_SET_CONTEXT_DENIED";
                 break;
-              case MD_FAST_FAIL_INVALID_IAT:
+              case (int32_t)MD_FAST_FAIL_INVALID_IAT:
                 reason = "FAST_FAIL_INVALID_IAT";
                 break;
-              case MD_FAST_FAIL_HEAP_METADATA_CORRUPTION:
+              case (int32_t)MD_FAST_FAIL_HEAP_METADATA_CORRUPTION:
                 reason = "FAST_FAIL_HEAP_METADATA_CORRUPTION";
                 break;
-              case MD_FAST_FAIL_PAYLOAD_RESTRICTION_VIOLATION:
+              case (int32_t)MD_FAST_FAIL_PAYLOAD_RESTRICTION_VIOLATION:
                 reason = "FAST_FAIL_PAYLOAD_RESTRICTION_VIOLATION";
                 break;
-              case MD_FAST_FAIL_LOW_LABEL_ACCESS_DENIED:
+              case (int32_t)MD_FAST_FAIL_LOW_LABEL_ACCESS_DENIED:
                 reason = "FAST_FAIL_LOW_LABEL_ACCESS_DENIED";
                 break;
-              case MD_FAST_FAIL_ENCLAVE_CALL_FAILURE:
+              case (int32_t)MD_FAST_FAIL_ENCLAVE_CALL_FAILURE:
                 reason = "FAST_FAIL_ENCLAVE_CALL_FAILURE";
                 break;
-              case MD_FAST_FAIL_UNHANDLED_LSS_EXCEPTON:
+              case (int32_t)MD_FAST_FAIL_UNHANDLED_LSS_EXCEPTON:
                 reason = "FAST_FAIL_UNHANDLED_LSS_EXCEPTON";
                 break;
-              case MD_FAST_FAIL_ADMINLESS_ACCESS_DENIED:
+              case (int32_t)MD_FAST_FAIL_ADMINLESS_ACCESS_DENIED:
                 reason = "FAST_FAIL_ADMINLESS_ACCESS_DENIED";
                 break;
-              case MD_FAST_FAIL_UNEXPECTED_CALL:
+              case (int32_t)MD_FAST_FAIL_UNEXPECTED_CALL:
                 reason = "FAST_FAIL_UNEXPECTED_CALL";
                 break;
-              case MD_FAST_FAIL_CONTROL_INVALID_RETURN_ADDRESS:
+              case (int32_t)MD_FAST_FAIL_CONTROL_INVALID_RETURN_ADDRESS:
                 reason = "FAST_FAIL_CONTROL_INVALID_RETURN_ADDRESS";
                 break;
-              case MD_FAST_FAIL_UNEXPECTED_HOST_BEHAVIOR:
+              case (int32_t)MD_FAST_FAIL_UNEXPECTED_HOST_BEHAVIOR:
                 reason = "FAST_FAIL_UNEXPECTED_HOST_BEHAVIOR";
                 break;
-              case MD_FAST_FAIL_FLAGS_CORRUPTION:
+              case (int32_t)MD_FAST_FAIL_FLAGS_CORRUPTION:
                 reason = "FAST_FAIL_FLAGS_CORRUPTION";
                 break;
-              case MD_FAST_FAIL_VEH_CORRUPTION:
+              case (int32_t)MD_FAST_FAIL_VEH_CORRUPTION:
                 reason = "FAST_FAIL_VEH_CORRUPTION";
                 break;
-              case MD_FAST_FAIL_ETW_CORRUPTION:
+              case (int32_t)MD_FAST_FAIL_ETW_CORRUPTION:
                 reason = "FAST_FAIL_ETW_CORRUPTION";
                 break;
-              case MD_FAST_FAIL_RIO_ABORT:
+              case (int32_t)MD_FAST_FAIL_RIO_ABORT:
                 reason = "FAST_FAIL_RIO_ABORT";
                 break;
-              case MD_FAST_FAIL_INVALID_PFN:
+              case (int32_t)MD_FAST_FAIL_INVALID_PFN:
                 reason = "FAST_FAIL_INVALID_PFN";
                 break;
-              case MD_FAST_FAIL_GUARD_ICALL_CHECK_FAILURE_XFG:
+              case (int32_t)MD_FAST_FAIL_GUARD_ICALL_CHECK_FAILURE_XFG:
                 reason = "FAST_FAIL_GUARD_ICALL_CHECK_FAILURE_XFG";
                 break;
-              case MD_FAST_FAIL_CAST_GUARD:
+              case (int32_t)MD_FAST_FAIL_CAST_GUARD:
                 reason = "FAST_FAIL_CAST_GUARD";
                 break;
-              case MD_FAST_FAIL_HOST_VISIBILITY_CHANGE:
+              case (int32_t)MD_FAST_FAIL_HOST_VISIBILITY_CHANGE:
                 reason = "FAST_FAIL_HOST_VISIBILITY_CHANGE";
                 break;
-              case MD_FAST_FAIL_KERNEL_CET_SHADOW_STACK_ASSIST:
+              case (int32_t)MD_FAST_FAIL_KERNEL_CET_SHADOW_STACK_ASSIST:
                 reason = "FAST_FAIL_KERNEL_CET_SHADOW_STACK_ASSIST";
                 break;
-              case MD_FAST_FAIL_PATCH_CALLBACK_FAILED:
+              case (int32_t)MD_FAST_FAIL_PATCH_CALLBACK_FAILED:
                 reason = "FAST_FAIL_PATCH_CALLBACK_FAILED";
                 break;
-              case MD_FAST_FAIL_NTDLL_PATCH_FAILED:
+              case (int32_t)MD_FAST_FAIL_NTDLL_PATCH_FAILED:
                 reason = "FAST_FAIL_NTDLL_PATCH_FAILED";
                 break;
-              case MD_FAST_FAIL_INVALID_FLS_DATA:
+              case (int32_t)MD_FAST_FAIL_INVALID_FLS_DATA:
                 reason = "FAST_FAIL_INVALID_FLS_DATA";
                 break;
               default:
@@ -1633,16 +1637,16 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
             reason = "EXCEPTION_STACK_BUFFER_OVERRUN";
           }
           break;
-        case MD_EXCEPTION_CODE_WIN_HEAP_CORRUPTION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_HEAP_CORRUPTION:
           reason = "EXCEPTION_HEAP_CORRUPTION";
           break;
-        case MD_EXCEPTION_OUT_OF_MEMORY:
+        case (int32_t)MD_EXCEPTION_OUT_OF_MEMORY:
           reason = "Out of Memory";
           break;
-        case MD_EXCEPTION_CODE_WIN_UNHANDLED_CPP_EXCEPTION:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_UNHANDLED_CPP_EXCEPTION:
           reason = "Unhandled C++ Exception";
           break;
-        case MD_EXCEPTION_CODE_WIN_SIMULATED:
+        case (int32_t)MD_EXCEPTION_CODE_WIN_SIMULATED:
           reason = "Simulated Exception";
           break;
         default:
@@ -1652,43 +1656,43 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
       break;
     }
 
-    case MD_OS_ANDROID:
-    case MD_OS_LINUX: {
+    case (int32_t)MD_OS_ANDROID:
+    case (int32_t)MD_OS_LINUX: {
       switch (int32_t(exception_code)) {
-        case MD_EXCEPTION_CODE_LIN_SIGHUP:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGHUP:
           reason = "SIGHUP";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGINT:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGINT:
           reason = "SIGINT";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGQUIT:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGQUIT:
           reason = "SIGQUIT";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGILL:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGILL:
           reason = "SIGILL / ";
           switch (exception_flags) {
-            case MD_EXCEPTION_FLAG_LIN_ILL_ILLOPC:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_ILLOPC:
               reason.append("ILL_ILLOPC");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_ILLOPN:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_ILLOPN:
               reason.append("ILL_ILLOPN");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_ILLADR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_ILLADR:
               reason.append("ILL_ILLADR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_ILLTRP:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_ILLTRP:
               reason.append("ILL_ILLTRP");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_PRVOPC:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_PRVOPC:
               reason.append("ILL_PRVOPC");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_PRVREG:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_PRVREG:
               reason.append("ILL_PRVREG");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_COPROC:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_COPROC:
               reason.append("ILL_COPROC");
               break;
-            case MD_EXCEPTION_FLAG_LIN_ILL_BADSTK:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_ILL_BADSTK:
               reason.append("ILL_BADSTK");
               break;
             default:
@@ -1697,28 +1701,28 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGTRAP:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGTRAP:
           reason = "SIGTRAP";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGABRT:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGABRT:
           reason = "SIGABRT";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGBUS:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGBUS:
           reason = "SIGBUS / ";
           switch (exception_flags) {
-            case MD_EXCEPTION_FLAG_LIN_BUS_ADRALN:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_BUS_ADRALN:
               reason.append("BUS_ADRALN");
               break;
-            case MD_EXCEPTION_FLAG_LIN_BUS_ADRERR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_BUS_ADRERR:
               reason.append("BUS_ADRERR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_BUS_OBJERR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_BUS_OBJERR:
               reason.append("BUS_OBJERR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_BUS_MCEERR_AR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_BUS_MCEERR_AR:
               reason.append("BUS_MCEERR_AR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_BUS_MCEERR_AO:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_BUS_MCEERR_AO:
               reason.append("BUS_MCEERR_AO");
               break;
             default:
@@ -1727,31 +1731,31 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGFPE:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGFPE:
           reason = "SIGFPE / ";
           switch (exception_flags) {
-            case MD_EXCEPTION_FLAG_LIN_FPE_INTDIV:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_INTDIV:
               reason.append("FPE_INTDIV");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_INTOVF:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_INTOVF:
               reason.append("FPE_INTOVF");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_FLTDIV:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_FLTDIV:
               reason.append("FPE_FLTDIV");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_FLTOVF:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_FLTOVF:
               reason.append("FPE_FLTOVF");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_FLTUND:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_FLTUND:
               reason.append("FPE_FLTUND");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_FLTRES:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_FLTRES:
               reason.append("FPE_FLTRES");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_FLTINV:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_FLTINV:
               reason.append("FPE_FLTINV");
               break;
-            case MD_EXCEPTION_FLAG_LIN_FPE_FLTSUB:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_FPE_FLTSUB:
               reason.append("FPE_FLTSUB");
               break;
             default:
@@ -1760,25 +1764,25 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGKILL:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGKILL:
           reason = "SIGKILL";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGUSR1:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGUSR1:
           reason = "SIGUSR1";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGSEGV:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGSEGV:
           reason = "SIGSEGV /";
           switch (exception_flags) {
-            case MD_EXCEPTION_FLAG_LIN_SEGV_MAPERR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_SEGV_MAPERR:
               reason.append("SEGV_MAPERR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_SEGV_ACCERR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_SEGV_ACCERR:
               reason.append("SEGV_ACCERR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_SEGV_BNDERR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_SEGV_BNDERR:
               reason.append("SEGV_BNDERR");
               break;
-            case MD_EXCEPTION_FLAG_LIN_SEGV_PKUERR:
+            case (int32_t)MD_EXCEPTION_FLAG_LIN_SEGV_PKUERR:
               reason.append("SEGV_PKUERR");
               break;
             default:
@@ -1787,67 +1791,67 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
               break;
           }
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGUSR2:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGUSR2:
           reason = "SIGUSR2";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGPIPE:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGPIPE:
           reason = "SIGPIPE";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGALRM:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGALRM:
           reason = "SIGALRM";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGTERM:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGTERM:
           reason = "SIGTERM";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGSTKFLT:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGSTKFLT:
           reason = "SIGSTKFLT";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGCHLD:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGCHLD:
           reason = "SIGCHLD";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGCONT:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGCONT:
           reason = "SIGCONT";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGSTOP:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGSTOP:
           reason = "SIGSTOP";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGTSTP:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGTSTP:
           reason = "SIGTSTP";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGTTIN:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGTTIN:
           reason = "SIGTTIN";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGTTOU:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGTTOU:
           reason = "SIGTTOU";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGURG:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGURG:
           reason = "SIGURG";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGXCPU:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGXCPU:
           reason = "SIGXCPU";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGXFSZ:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGXFSZ:
           reason = "SIGXFSZ";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGVTALRM:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGVTALRM:
           reason = "SIGVTALRM";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGPROF:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGPROF:
           reason = "SIGPROF";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGWINCH:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGWINCH:
           reason = "SIGWINCH";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGIO:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGIO:
           reason = "SIGIO";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGPWR:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGPWR:
           reason = "SIGPWR";
           break;
-        case MD_EXCEPTION_CODE_LIN_SIGSYS:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_SIGSYS:
           reason = "SIGSYS";
           break;
-        case MD_EXCEPTION_CODE_LIN_DUMP_REQUESTED:
+        case (int32_t)MD_EXCEPTION_CODE_LIN_DUMP_REQUESTED:
           reason = "DUMP_REQUESTED";
           break;
         default:
@@ -1857,126 +1861,126 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
       break;
     }
 
-    case MD_OS_SOLARIS: {
+    case (int32_t)MD_OS_SOLARIS: {
       switch (int32_t(exception_code)) {
-        case MD_EXCEPTION_CODE_SOL_SIGHUP:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGHUP:
           reason = "SIGHUP";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGINT:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGINT:
           reason = "SIGINT";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGQUIT:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGQUIT:
           reason = "SIGQUIT";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGILL:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGILL:
           reason = "SIGILL";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGTRAP:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGTRAP:
           reason = "SIGTRAP";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGIOT:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGIOT:
           reason = "SIGIOT | SIGABRT";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGEMT:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGEMT:
           reason = "SIGEMT";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGFPE:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGFPE:
           reason = "SIGFPE";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGKILL:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGKILL:
           reason = "SIGKILL";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGBUS:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGBUS:
           reason = "SIGBUS";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGSEGV:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGSEGV:
           reason = "SIGSEGV";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGSYS:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGSYS:
           reason = "SIGSYS";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGPIPE:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGPIPE:
           reason = "SIGPIPE";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGALRM:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGALRM:
           reason = "SIGALRM";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGTERM:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGTERM:
           reason = "SIGTERM";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGUSR1:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGUSR1:
           reason = "SIGUSR1";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGUSR2:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGUSR2:
           reason = "SIGUSR2";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGCLD:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGCLD:
           reason = "SIGCLD | SIGCHLD";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGPWR:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGPWR:
           reason = "SIGPWR";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGWINCH:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGWINCH:
           reason = "SIGWINCH";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGURG:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGURG:
           reason = "SIGURG";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGPOLL:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGPOLL:
           reason = "SIGPOLL | SIGIO";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGSTOP:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGSTOP:
           reason = "SIGSTOP";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGTSTP:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGTSTP:
           reason = "SIGTSTP";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGCONT:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGCONT:
           reason = "SIGCONT";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGTTIN:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGTTIN:
           reason = "SIGTTIN";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGTTOU:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGTTOU:
           reason = "SIGTTOU";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGVTALRM:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGVTALRM:
           reason = "SIGVTALRM";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGPROF:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGPROF:
           reason = "SIGPROF";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGXCPU:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGXCPU:
           reason = "SIGXCPU";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGXFSZ:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGXFSZ:
           reason = "SIGXFSZ";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGWAITING:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGWAITING:
           reason = "SIGWAITING";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGLWP:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGLWP:
           reason = "SIGLWP";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGFREEZE:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGFREEZE:
           reason = "SIGFREEZE";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGTHAW:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGTHAW:
           reason = "SIGTHAW";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGCANCEL:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGCANCEL:
           reason = "SIGCANCEL";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGLOST:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGLOST:
           reason = "SIGLOST";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGXRES:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGXRES:
           reason = "SIGXRES";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGJVM1:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGJVM1:
           reason = "SIGJVM1";
           break;
-        case MD_EXCEPTION_CODE_SOL_SIGJVM2:
+        case (int32_t)MD_EXCEPTION_CODE_SOL_SIGJVM2:
           reason = "SIGJVM2";
           break;
         default:
@@ -1986,75 +1990,75 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
       break;
     }
 
-    case MD_OS_PS3: {
+    case (int32_t)MD_OS_PS3: {
       switch (int32_t(exception_code)) {
-        case MD_EXCEPTION_CODE_PS3_UNKNOWN:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_UNKNOWN:
           reason = "UNKNOWN";
           break;
-        case MD_EXCEPTION_CODE_PS3_TRAP_EXCEP:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_TRAP_EXCEP:
           reason = "TRAP_EXCEP";
           break;
-        case MD_EXCEPTION_CODE_PS3_PRIV_INSTR:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_PRIV_INSTR:
           reason = "PRIV_INSTR";
           break;
-        case MD_EXCEPTION_CODE_PS3_ILLEGAL_INSTR:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_ILLEGAL_INSTR:
           reason = "ILLEGAL_INSTR";
           break;
-        case MD_EXCEPTION_CODE_PS3_INSTR_STORAGE:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_INSTR_STORAGE:
           reason = "INSTR_STORAGE";
           break;
-        case MD_EXCEPTION_CODE_PS3_INSTR_SEGMENT:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_INSTR_SEGMENT:
           reason = "INSTR_SEGMENT";
           break;
-        case MD_EXCEPTION_CODE_PS3_DATA_STORAGE:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_DATA_STORAGE:
           reason = "DATA_STORAGE";
           break;
-        case MD_EXCEPTION_CODE_PS3_DATA_SEGMENT:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_DATA_SEGMENT:
           reason = "DATA_SEGMENT";
           break;
-        case MD_EXCEPTION_CODE_PS3_FLOAT_POINT:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_FLOAT_POINT:
           reason = "FLOAT_POINT";
           break;
-        case MD_EXCEPTION_CODE_PS3_DABR_MATCH:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_DABR_MATCH:
           reason = "DABR_MATCH";
           break;
-        case MD_EXCEPTION_CODE_PS3_ALIGN_EXCEP:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_ALIGN_EXCEP:
           reason = "ALIGN_EXCEP";
           break;
-        case MD_EXCEPTION_CODE_PS3_MEMORY_ACCESS:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_MEMORY_ACCESS:
           reason = "MEMORY_ACCESS";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_ALIGN:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_ALIGN:
           reason = "COPRO_ALIGN";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_INVALID_COM:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_INVALID_COM:
           reason = "COPRO_INVALID_COM";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_ERR:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_ERR:
           reason = "COPRO_ERR";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_FIR:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_FIR:
           reason = "COPRO_FIR";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_DATA_SEGMENT:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_DATA_SEGMENT:
           reason = "COPRO_DATA_SEGMENT";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_DATA_STORAGE:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_DATA_STORAGE:
           reason = "COPRO_DATA_STORAGE";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_STOP_INSTR:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_STOP_INSTR:
           reason = "COPRO_STOP_INSTR";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_HALT_INSTR:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_HALT_INSTR:
           reason = "COPRO_HALT_INSTR";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_HALTINST_UNKNOWN:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_HALTINST_UNKNOWN:
           reason = "COPRO_HALTINSTR_UNKNOWN";
           break;
-        case MD_EXCEPTION_CODE_PS3_COPRO_MEMORY_ACCESS:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_COPRO_MEMORY_ACCESS:
           reason = "COPRO_MEMORY_ACCESS";
           break;
-        case MD_EXCEPTION_CODE_PS3_GRAPHIC:
+        case (int32_t)MD_EXCEPTION_CODE_PS3_GRAPHIC:
           reason = "GRAPHIC";
           break;
         default:
@@ -2102,10 +2106,10 @@ string MinidumpProcessor::GetAssertion(Minidump* dump) {
 
   string assertion_string;
   switch (raw_assertion->type) {
-    case MD_ASSERTION_INFO_TYPE_INVALID_PARAMETER:
+    case (int32_t)MD_ASSERTION_INFO_TYPE_INVALID_PARAMETER:
       assertion_string = "Invalid parameter passed to library function";
       break;
-    case MD_ASSERTION_INFO_TYPE_PURE_VIRTUAL_CALL:
+    case (int32_t)MD_ASSERTION_INFO_TYPE_PURE_VIRTUAL_CALL:
       assertion_string = "Pure virtual function called";
       break;
     default: {
