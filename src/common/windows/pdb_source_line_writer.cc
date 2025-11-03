@@ -96,9 +96,9 @@ void MaybeRecordSymbol(DWORD rva,
   }
 
   // Prefer function symbols to public symbols.
-  if (is_public && !loc->second.is_public) {
-    return;
-  }
+  // if (is_public && !loc->second.is_public) {
+  //  return;
+  //}
 
   loc->second.is_multiple = true;
 
@@ -690,7 +690,7 @@ bool PDBSourceLineWriter::PrintFunctions() {
 
   // Find all public symbols and record public symbols that are not also private
   // symbols.
-  hr = global->findChildren(SymTagPublicSymbol, NULL, nsNone, &symbols);
+  hr = global->findChildren(SymTagNull, NULL, nsNone, &symbols);
 
   if (SUCCEEDED(hr)) {
     CComPtr<IDiaSymbol> symbol = NULL;
