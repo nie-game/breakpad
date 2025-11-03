@@ -108,6 +108,10 @@ void MaybeRecordSymbol(DWORD rva,
   BSTR current_name, new_name;
   loc->second.symbol->get_name(&current_name);
   symbol->get_name(&new_name);
+  if (!new_name)
+    return;
+  if (!current_name)
+    return;
   if (wcscmp(new_name, current_name) < 0) {
     loc->second.symbol = symbol;
     loc->second.is_public = is_public;
