@@ -1272,7 +1272,7 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
 
     case MD_OS_WIN32_NT:
     case MD_OS_WIN32_WINDOWS: {
-      switch (exception_code) {
+      switch (int32_t(exception_code)) {
         case MD_EXCEPTION_CODE_WIN_CONTROL_C:
           reason = "DBG_CONTROL_C";
           break;
@@ -1654,7 +1654,7 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
 
     case MD_OS_ANDROID:
     case MD_OS_LINUX: {
-      switch (exception_code) {
+      switch (int32_t(exception_code)) {
         case MD_EXCEPTION_CODE_LIN_SIGHUP:
           reason = "SIGHUP";
           break;
@@ -1858,7 +1858,7 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
     }
 
     case MD_OS_SOLARIS: {
-      switch (exception_code) {
+      switch (int32_t(exception_code)) {
         case MD_EXCEPTION_CODE_SOL_SIGHUP:
           reason = "SIGHUP";
           break;
@@ -1987,7 +1987,7 @@ string MinidumpProcessor::GetCrashReason(Minidump* dump,
     }
 
     case MD_OS_PS3: {
-      switch (exception_code) {
+      switch (int32_t(exception_code)) {
         case MD_EXCEPTION_CODE_PS3_UNKNOWN:
           reason = "UNKNOWN";
           break;
