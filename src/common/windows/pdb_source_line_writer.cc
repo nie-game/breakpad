@@ -694,7 +694,29 @@ bool PDBSourceLineWriter::PrintFunctions() {
 
   // Find all public symbols and record public symbols that are not also private
   // symbols.
-  hr = global->findChildren(SymTagNull, NULL, nsNone, &symbols);
+  hr = global->findChildren(SymTagPublicSymbol, NULL, nsNone, &symbols);
+
+  if (SUCCEEDED(hr)) {
+    CComPtr<IDiaSymbol> symbol = NULL;
+
+    while (SUCCEEDED(symbols->Next(1, &symbol, &count)) && count == 1) {
+      if (SUCCEEDED(symbol->get_relativeVirtualAddress(&rva))) {
+        // Potentially record this as the canonical symbol for this rva.
+        MaybeRecordSymbol(rva, symbol, true, &rva_symbol);
+      } else {
+        fprintf(stderr, "get_relativeVirtualAddress failed on the symbol\n");
+        return false;
+      }
+
+      symbol.Release();
+    }
+
+    symbols.Release();
+  }
+
+  // Find all public symbols and record public symbols that are not also private
+  // symbols.
+  hr = global->findChildren(SymTagData, NULL, nsNone, &symbols);
 
   if (SUCCEEDED(hr)) {
     CComPtr<IDiaSymbol> symbol = NULL;
@@ -1314,7 +1336,8 @@ int PDBSourceLineWriter::GetFunctionStackParamSize(IDiaSymbol* function) {
 
   CComPtr<IDiaSymbol> child;
   DWORD count;
-  while (SUCCEEDED(data_children->Next(1, &child, &count)) && count == 1) {
+  while (data_children && SUCCEEDED(data_children->Next(1, &child, &count)) &&
+         count == 1) {
     // If any operation fails at this point, just proceed to the next child.
     // Use the next_child label instead of continue because child needs to
     // be released before it's reused.  Declare constructable/destructable
