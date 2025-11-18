@@ -67,7 +67,7 @@ string MakeQualifiedNameWithSeparator(const string& parent_name,
 namespace google_breakpad {
 
 // C++ language-specific operations.
-class CPPLanguage: public Language {
+class CPPLanguage : public Language {
  public:
   CPPLanguage() {}
 
@@ -85,10 +85,10 @@ class CPPLanguage: public Language {
 #else
     // Attempting to demangle non-C++ symbols with the C++ demangler would print
     // warnings and fail, so return kDontDemangle for these.
-    if (!IsMangledName(mangled)) {
-      demangled->clear();
-      return kDontDemangle;
-    }
+    // if (!IsMangledName(mangled)) {
+    demangled->clear();
+    return kDontDemangle;
+    //}
 
     int status;
     char* demangled_c =
@@ -130,7 +130,7 @@ class CPPLanguage: public Language {
 CPPLanguage CPPLanguageSingleton;
 
 // Java language-specific operations.
-class JavaLanguage: public Language {
+class JavaLanguage : public Language {
  public:
   JavaLanguage() {}
 
@@ -143,7 +143,7 @@ class JavaLanguage: public Language {
 JavaLanguage JavaLanguageSingleton;
 
 // Swift language-specific operations.
-class SwiftLanguage: public Language {
+class SwiftLanguage : public Language {
  public:
   SwiftLanguage() {}
 
@@ -167,7 +167,7 @@ class SwiftLanguage: public Language {
 SwiftLanguage SwiftLanguageSingleton;
 
 // Rust language-specific operations.
-class RustLanguage: public Language {
+class RustLanguage : public Language {
  public:
   RustLanguage() {}
 
@@ -201,7 +201,7 @@ class RustLanguage: public Language {
 RustLanguage RustLanguageSingleton;
 
 // Assembler language-specific operations.
-class AssemblerLanguage: public Language {
+class AssemblerLanguage : public Language {
  public:
   AssemblerLanguage() {}
 
@@ -214,10 +214,10 @@ class AssemblerLanguage: public Language {
 
 AssemblerLanguage AssemblerLanguageSingleton;
 
-const Language * const Language::CPlusPlus = &CPPLanguageSingleton;
-const Language * const Language::Java = &JavaLanguageSingleton;
-const Language * const Language::Swift = &SwiftLanguageSingleton;
-const Language * const Language::Rust = &RustLanguageSingleton;
-const Language * const Language::Assembler = &AssemblerLanguageSingleton;
+const Language* const Language::CPlusPlus = &CPPLanguageSingleton;
+const Language* const Language::Java = &JavaLanguageSingleton;
+const Language* const Language::Swift = &SwiftLanguageSingleton;
+const Language* const Language::Rust = &RustLanguageSingleton;
+const Language* const Language::Assembler = &AssemblerLanguageSingleton;
 
-} // namespace google_breakpad
+}  // namespace google_breakpad
